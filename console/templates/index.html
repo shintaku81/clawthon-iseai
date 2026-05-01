@@ -394,6 +394,67 @@
     }
     .empty-state p { font-size: 14px; margin-top: 8px; }
   </style>
+  <style>
+    /* 監視パネル */
+    .monitor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; padding: 20px; }
+    .metric-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      position: relative;
+    }
+    .metric-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .metric-name { font-family: var(--font-heading); font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+    .metric-id { font-size: 11px; color: var(--text-faint); }
+    .metric-row { display: flex; justify-content: space-between; align-items: center; margin: 4px 0; }
+    .metric-label { font-size: 11px; color: var(--text-muted); }
+    .metric-value { font-family: 'Space Grotesk', monospace; font-size: 12px; font-weight: 600; color: var(--text); }
+    .metric-value.ok { color: var(--green); }
+    .metric-value.warn { color: var(--orange); }
+    .metric-value.err { color: var(--red); }
+    .oh-version-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-family: 'Space Grotesk', monospace;
+      background: var(--red-light);
+      color: var(--red-dark);
+      border: 1px solid var(--red-border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn-monitor { padding: 3px 10px; font-size: 11px; color: var(--text-muted); border: 1px solid var(--border); border-radius: 6px; background: none; cursor: pointer; font-family: var(--font-heading); }
+    .btn-monitor:hover { background: var(--bg); color: var(--text); }
+    .monitor-loading { color: var(--text-faint); font-size: 12px; text-align: center; padding: 12px; }
+
+    /* ログビューワー */
+    .log-panel { padding: 16px 20px; }
+    .log-controls { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+    .log-select, .log-lines {
+      padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px;
+      font-size: 12px; font-family: var(--font-heading); outline: none; background: var(--surface);
+    }
+    .btn-fetch-log { padding: 6px 14px; background: var(--red); color: white; border: none; border-radius: 6px; font-size: 12px; font-family: var(--font-heading); font-weight: 600; cursor: pointer; }
+    .btn-fetch-log:hover { background: var(--red-dark); }
+    pre.log-output {
+      background: #0f0f1a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      line-height: 1.6;
+      overflow-x: auto;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  </style>
   <script>
     setTimeout(() => location.reload(), 30000);
 
@@ -405,6 +466,70 @@
       title.textContent = vmName + ' — OpenHands チャット';
       frame.src = 'https://' + vmName + '.iseai.neuratools.ai/openhands/';
       panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // 全VMのメトリクスを取得
+    async function loadMetrics() {
+      const grid = document.getElementById('monitor-grid');
+      const pids = grid.dataset.pids.split(',').filter(Boolean);
+      for (const pid of pids) {
+        const card = document.getElementById('metric-card-' + pid);
+        if (!card) continue;
+        card.innerHTML = '<div class="monitor-loading">取得中...</div>';
+        try {
+          const res = await fetch('/api/vm/' + pid + '/metrics');
+          const data = await res.json();
+          if (data.error) {
+            card.innerHTML = `<div class="metric-header"><span class="metric-name">p${pid}</span><span class="metric-id badge badge-${data.status}">${data.status}</span></div><div style="color:var(--text-faint);font-size:12px;padding:8px 0">VM停止中</div>`;
+            continue;
+          }
+          const cpu = parseFloat(data.cpu_percent) || 0;
+          const cpuClass = cpu > 80 ? 'err' : cpu > 60 ? 'warn' : 'ok';
+          card.innerHTML = `
+            <div class="metric-header">
+              <span class="metric-name">p${pid}</span>
+              <span class="metric-id">${data.uptime}</span>
+            </div>
+            <div class="metric-row"><span class="metric-label">CPU</span><span class="metric-value ${cpuClass}">${data.cpu_percent || '—'}%</span></div>
+            <div class="metric-row"><span class="metric-label">メモリ</span><span class="metric-value">${data.memory || '—'}</span></div>
+            <div class="metric-row"><span class="metric-label">ディスク</span><span class="metric-value">${data.disk || '—'}</span></div>
+            <div class="metric-row"><span class="metric-label">OpenHands</span><span class="oh-version-tag">${data.oh_version || '未起動'}</span></div>
+          `;
+        } catch(e) {
+          card.innerHTML = '<div style="color:var(--red);font-size:12px">取得失敗</div>';
+        }
+      }
+    }
+
+    // ログ取得
+    async function fetchLogs() {
+      const pid = document.getElementById('log-pid-select').value;
+      const lines = document.getElementById('log-lines').value || 100;
+      const output = document.getElementById('log-output');
+      output.textContent = '取得中...';
+      try {
+        const res = await fetch(`/api/vm/${pid}/logs?lines=${lines}`);
+        const data = await res.json();
+        output.textContent = data.logs || data.error || '（ログなし）';
+        output.scrollTop = output.scrollHeight;
+      } catch(e) {
+        output.textContent = 'ログ取得に失敗しました';
+      }
+    }
+
+    // 管理コンソールログ取得
+    async function fetchConsoleLogs() {
+      const output = document.getElementById('log-output');
+      document.getElementById('log-pid-select').value = 'management';
+      output.textContent = '取得中...';
+      try {
+        const res = await fetch('/api/vm/management/service-logs');
+        const data = await res.json();
+        output.textContent = data.logs || data.error || '（ログなし）';
+        output.scrollTop = output.scrollHeight;
+      } catch(e) {
+        output.textContent = '取得失敗';
+      }
     }
   </script>
 </head>
@@ -596,6 +721,51 @@
               style="font-size:12px;color:var(--text-muted);background:none;border:none;cursor:pointer">✕ 閉じる</button>
     </div>
     <iframe id="chat-frame" class="chat-iframe" src="" allow="camera; microphone" allowfullscreen></iframe>
+  </div>
+
+  <!-- サーバー監視パネル -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">サーバー監視</span>
+      <button class="btn-monitor" onclick="loadMetrics()">↻ 更新</button>
+    </div>
+    <div class="monitor-grid" id="monitor-grid"
+         data-pids="{{ participants | map(attribute='id') | join(',') }}">
+      {% for p in participants %}
+      <div class="metric-card" id="metric-card-{{ p.id }}">
+        <div class="metric-header">
+          <span class="metric-name">p{{ p.id }} — {{ p.name }}</span>
+          <span class="badge badge-{{ p.vm_status }}" style="font-size:10px">{{ p.vm_status }}</span>
+        </div>
+        <div style="color:var(--text-faint);font-size:12px;padding:8px 0">「更新」を押して取得</div>
+      </div>
+      {% endfor %}
+      {% if not participants %}
+      <div style="color:var(--text-faint);font-size:13px;padding:20px">参加者が登録されていません</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ログビューワー -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">ログビューワー</span>
+      <span class="panel-hint">OpenHands・コンソールのログをリアルタイム確認</span>
+    </div>
+    <div class="log-panel">
+      <div class="log-controls">
+        <select class="log-select" id="log-pid-select">
+          {% for p in participants %}
+          <option value="{{ p.id }}">p{{ p.id }} — {{ p.name }}</option>
+          {% endfor %}
+          <option value="management">管理コンソール (systemd)</option>
+        </select>
+        <input type="number" class="log-lines" id="log-lines" value="100" min="10" max="500" style="width:80px"> 行
+        <button class="btn-fetch-log" onclick="fetchLogs()">OpenHandsログ取得</button>
+        <button class="btn-monitor" onclick="fetchConsoleLogs()">コンソールログ</button>
+      </div>
+      <pre class="log-output" id="log-output">ログを取得するには上のボタンを押してください</pre>
+    </div>
   </div>
 
 </main>

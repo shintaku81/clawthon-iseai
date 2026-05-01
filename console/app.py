@@ -388,6 +388,104 @@ async def manual(request: Request, session: str = Cookie(default="")):
     return templates.TemplateResponse("manual.html", {"request": request})
 
 
+# ─── VM監視API ───────────────────────────────────────
+
+async def ssh_run_async(vm_name: str, command: str) -> str:
+    """VM上でコマンドを非同期実行"""
+    def _run():
+        try:
+            result = subprocess.run(
+                [GCLOUD, "compute", "ssh", vm_name,
+                 f"--project={PROJECT}", f"--zone={ZONE}",
+                 "--command", command],
+                capture_output=True, text=True, timeout=15
+            )
+            return result.stdout.strip()
+        except Exception:
+            return ""
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(_executor, _run)
+
+
+@app.get("/api/vm/{pid}/metrics")
+async def vm_metrics(pid: str, session: str = Cookie(default="")):
+    if not is_admin(session):
+        raise HTTPException(403)
+    vm_name = f"clawthon-p{pid}"
+    status = get_vm_status(pid)
+    if status != "RUNNING":
+        return {"error": "VM is not running", "status": status}
+
+    metrics_cmd = (
+        "echo '=CPU=' && top -bn1 | grep 'Cpu(s)' | awk '{print $2+$4}' | tr -d '%us,';"
+        "echo '=MEM=' && free -m | awk 'NR==2{printf \"%s/%s MB\\n\", $3,$2}';"
+        "echo '=DISK=' && df -h / | awk 'NR==2{print $3\"/\"$2\" (\"$5\" used)\"}';"
+        "echo '=DOCKER=' && sudo docker ps --format '{{.Names}}:{{.Status}}' 2>/dev/null || echo 'none';"
+        "echo '=OH_VER=' && sudo docker inspect openhands --format '{{.Config.Image}}' 2>/dev/null || echo 'not running';"
+        "echo '=UPTIME=' && uptime -p"
+    )
+    raw = await ssh_run_async(vm_name, metrics_cmd)
+
+    def extract(key):
+        marker = f"={key}="
+        lines = raw.split('\n')
+        result = []
+        capture = False
+        for line in lines:
+            if line.strip() == marker:
+                capture = True
+                continue
+            if capture:
+                if line.startswith('=') and line.endswith('='):
+                    break
+                if line.strip():
+                    result.append(line.strip())
+        return '\n'.join(result)
+
+    return {
+        "pid": pid,
+        "status": status,
+        "cpu_percent": extract("CPU"),
+        "memory": extract("MEM"),
+        "disk": extract("DISK"),
+        "docker_containers": extract("DOCKER"),
+        "oh_version": extract("OH_VER"),
+        "uptime": extract("UPTIME"),
+    }
+
+
+@app.get("/api/vm/{pid}/logs")
+async def vm_logs(pid: str, lines: int = 100, session: str = Cookie(default="")):
+    if not is_admin(session):
+        raise HTTPException(403)
+    vm_name = f"clawthon-p{pid}"
+    status = get_vm_status(pid)
+    if status != "RUNNING":
+        return JSONResponse({"error": "VM is not running"})
+
+    logs_cmd = f"sudo docker logs openhands --tail {lines} 2>&1 || echo 'OpenHandsコンテナが見つかりません'"
+    logs = await ssh_run_async(vm_name, logs_cmd)
+    return JSONResponse({"pid": pid, "logs": logs})
+
+
+@app.get("/api/vm/{pid}/service-logs")
+async def service_logs(pid: str, service: str = "clawthon-console", session: str = Cookie(default="")):
+    """管理コンソール自体のサービスログを取得（pid='management'の場合）"""
+    if not is_admin(session):
+        raise HTTPException(403)
+    if pid == "management":
+        def _get_logs():
+            result = subprocess.run(
+                ["journalctl", "-u", service, "-n", "100", "--no-pager"],
+                capture_output=True, text=True
+            )
+            return result.stdout
+        loop = asyncio.get_event_loop()
+        logs = await loop.run_in_executor(_executor, _get_logs)
+        return JSONResponse({"pid": "management", "logs": logs})
+    return JSONResponse({"error": "Invalid pid"})
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)
