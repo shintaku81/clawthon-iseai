@@ -5,10 +5,12 @@ from datetime import datetime
 from fastapi import FastAPI, Request, Form, Cookie, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 import httpx
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 PROJECT = "clawthon-iseai"
 ZONE = "asia-northeast1-b"
@@ -16,6 +18,7 @@ GCLOUD = os.getenv("GCLOUD_PATH", "/usr/bin/gcloud")
 DATA_FILE = Path("/opt/clawthon/console/participants.json")
 SETTINGS_FILE = Path("/opt/clawthon/console/settings.json")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "clawthon2026")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "masahiro@takechi.jp")
 ADMIN_TOKEN = hashlib.sha256(ADMIN_PASSWORD.encode()).hexdigest()
 LITELLM_MASTER_KEY = os.getenv("LITELLM_MASTER_KEY", "clawthon-master-key")
 LITELLM_URL = os.getenv("LITELLM_URL", "http://localhost:4000")
@@ -136,11 +139,15 @@ async def login_page(request: Request, error: str = ""):
 
 
 @app.post("/login")
-async def login(password: str = Form(...)):
-    if hashlib.sha256(password.encode()).hexdigest() == ADMIN_TOKEN:
+async def login(email: str = Form(...), password: str = Form(...)):
+    email_ok = email.lower().strip() == ADMIN_EMAIL.lower()
+    pass_ok = hashlib.sha256(password.encode()).hexdigest() == ADMIN_TOKEN
+    if email_ok and pass_ok:
         resp = RedirectResponse("/", status_code=303)
         resp.set_cookie("session", ADMIN_TOKEN, httponly=True, max_age=86400*7)
         return resp
+    if not email_ok:
+        return RedirectResponse("/login?error=メールアドレスが正しくありません", status_code=303)
     return RedirectResponse("/login?error=パスワードが違います", status_code=303)
 
 

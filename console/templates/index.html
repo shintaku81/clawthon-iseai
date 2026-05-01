@@ -9,13 +9,12 @@
     body { background: #f5f7fa; color: #1f2937; font-family: system-ui, sans-serif; }
 
     header {
-      background: #ffffff; border-bottom: 1px solid #e5e7eb;
-      padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      background: #ffffff; border-bottom: 1px solid #ffe4e6;
+      padding: 0 24px; height: 60px; display: flex; align-items: center; gap: 16px;
+      box-shadow: 0 1px 6px rgba(255,116,125,0.1);
     }
-    .logo-badge { background: #7c3aed; color: white; font-weight: 700; font-size: 12px;
-                  padding: 3px 8px; border-radius: 5px; letter-spacing: 1px; }
-    header h1 { color: #111827; font-size: 16px; font-weight: 700; flex: 1; }
+    .logo-area img { height: 32px; object-fit: contain; }
+    header h1 { color: #111827; font-size: 15px; font-weight: 700; flex: 1; }
     .stat { background: #f3f4f6; border-radius: 6px; padding: 4px 12px; font-size: 13px; color: #6b7280; }
     .stat b { color: #111827; }
     a.logout { color: #6b7280; font-size: 13px; text-decoration: none; padding: 6px 12px;
@@ -50,22 +49,22 @@
 
     .btn { padding: 5px 12px; border: 1px solid; border-radius: 5px; cursor: pointer;
            font-size: 12px; font-weight: 500; background: transparent; transition: background 0.15s; }
-    .btn-create { color: #7c3aed; border-color: #c4b5fd; }
-    .btn-create:hover { background: #f5f3ff; }
+    .btn-create { color: #ff747d; border-color: #ffb3b7; }
+    .btn-create:hover { background: #fff5f5; }
     .btn-start { color: #16a34a; border-color: #86efac; }
     .btn-start:hover { background: #f0fdf4; }
-    .btn-stop { color: #dc2626; border-color: #fca5a5; }
+    .btn-stop { color: #e05a63; border-color: #fca5a5; }
     .btn-stop:hover { background: #fef2f2; }
     .btn-delete { color: #6b7280; border-color: #e5e7eb; }
     .btn-delete:hover { background: #f9fafb; }
-    .btn-chat { color: #2563eb; border-color: #bfdbfe; font-size: 11px; }
-    .btn-chat:hover { background: #eff6ff; }
+    .btn-chat { color: #ff747d; border-color: #ffb3b7; font-size: 11px; }
+    .btn-chat:hover { background: #fff5f5; }
 
     .link-group { display: flex; flex-wrap: wrap; gap: 6px; }
     .link-btn { display: inline-block; padding: 4px 10px; border-radius: 5px; font-size: 11px;
                 font-weight: 500; text-decoration: none; border: 1px solid; }
-    .link-oh { color: #7c3aed; border-color: #c4b5fd; background: #faf5ff; }
-    .link-oh:hover { background: #f5f3ff; }
+    .link-oh { color: #ff747d; border-color: #ffb3b7; background: #fff5f5; }
+    .link-oh:hover { background: #ffe4e6; }
     .link-vs { color: #2563eb; border-color: #bfdbfe; background: #eff6ff; }
     .link-vs:hover { background: #dbeafe; }
 
@@ -78,13 +77,14 @@
     .form-group input { padding: 7px 10px; background: #f9fafb; border: 1px solid #d1d5db;
                         border-radius: 5px; color: #111827; font-size: 13px; outline: none; width: 200px; }
     .form-group input:focus { border-color: #7c3aed; box-shadow: 0 0 0 2px #7c3aed20; }
-    .btn-add { padding: 7px 16px; background: #7c3aed; border: none; border-radius: 5px;
-               color: white; font-size: 13px; cursor: pointer; font-weight: 600; }
-    .btn-add:hover { background: #6d28d9; }
+    .btn-add { padding: 7px 16px; background: #ff747d; border: none; border-radius: 50px;
+               color: white; font-size: 13px; cursor: pointer; font-weight: 600;
+               box-shadow: 0 2px 8px rgba(255,116,125,0.3); }
+    .btn-add:hover { background: #e05a63; }
 
     details summary { cursor: pointer; font-size: 12px; color: #6b7280; list-style: none; }
     details summary::-webkit-details-marker { display: none; }
-    details[open] summary { color: #7c3aed; }
+    details[open] summary { color: #ff747d; }
     .settings-form { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .settings-form input, .settings-form select {
       padding: 5px 8px; background: #f9fafb; border: 1px solid #d1d5db;
@@ -92,13 +92,13 @@
     }
     .settings-form input { width: 240px; font-family: monospace; }
     .settings-form select { min-width: 140px; }
-    .btn-save { padding: 5px 10px; background: #7c3aed; border: none; border-radius: 4px;
-                color: white; font-size: 12px; cursor: pointer; font-weight: 500; }
-    .btn-save:hover { background: #6d28d9; }
+    .btn-save { padding: 5px 10px; background: #ff747d; border: none; border-radius: 20px;
+                color: white; font-size: 12px; cursor: pointer; font-weight: 600; }
+    .btn-save:hover { background: #e05a63; }
 
-    .version-badge { font-family: monospace; font-size: 11px; color: #7c3aed;
-                     background: #faf5ff; padding: 2px 6px; border-radius: 3px;
-                     border: 1px solid #c4b5fd; }
+    .version-badge { font-family: monospace; font-size: 11px; color: #ff747d;
+                     background: #fff5f5; padding: 2px 6px; border-radius: 3px;
+                     border: 1px solid #ffb3b7; }
 
     /* OpenHands チャットパネル */
     .chat-panel { padding: 0; overflow: hidden; border-radius: 10px; }
@@ -112,16 +112,17 @@
     .tab.active { background: #7c3aed; color: white; border-color: #7c3aed; }
     .tab:hover:not(.active) { background: #f9fafb; }
 
-    .oh-config-bar { padding: 12px 20px; background: #faf5ff; border-bottom: 1px solid #e9d5ff;
+    .oh-config-bar { padding: 12px 20px; background: #fff5f5; border-bottom: 1px solid #ffe4e6;
                      display: flex; align-items: center; gap: 12px; font-size: 13px; flex-wrap: wrap; }
-    .oh-config-bar label { color: #7c3aed; font-weight: 500; font-size: 12px; }
+    .oh-config-bar label { color: #e05a63; font-weight: 500; font-size: 12px; }
     .oh-config-bar input, .oh-config-bar select {
-      padding: 4px 8px; border: 1px solid #c4b5fd; border-radius: 4px; font-size: 12px;
+      padding: 4px 8px; border: 1px solid #ffb3b7; border-radius: 4px; font-size: 12px;
       background: white; outline: none; color: #111827;
     }
     .oh-config-bar input { width: 200px; font-family: monospace; }
-    .btn-apply { padding: 5px 12px; background: #7c3aed; border: none; border-radius: 4px;
-                 color: white; font-size: 12px; cursor: pointer; }
+    .btn-apply { padding: 5px 14px; background: #ff747d; border: none; border-radius: 20px;
+                 color: white; font-size: 12px; cursor: pointer; font-weight: 600; }
+    .btn-apply:hover { background: #e05a63; }
   </style>
   <script>
     // 30秒ごとに自動リフレッシュ
@@ -141,13 +142,13 @@
 </head>
 <body>
 <header>
-  <span class="logo-badge">ISEAI</span>
-  <h1>Clawthon ISEAI 管理コンソール</h1>
+  <div class="logo-area"><img src="/static/iseai-logo.svg" alt="ISEAI"></div>
+  <h1>Clawthon 管理コンソール</h1>
   <div class="stat">参加者 <b>{{ total }}</b></div>
   <div class="stat">稼働中 <b style="color:#16a34a">{{ running }}</b></div>
   <div class="stat" title="概算コスト（GCP+SPOT）">💴 <b>¥{{ cost_hourly }}/時</b> <span style="font-size:11px;color:#9ca3af">（¥{{ cost_event }}/2日間）</span></div>
-  <a href="/manual" style="color:#6b7280;font-size:13px;text-decoration:none;padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;">マニュアル</a>
-  <a class="logout" href="/logout">ログアウト</a>
+  <a href="/manual" style="color:#6b7280;font-size:13px;text-decoration:none;padding:6px 10px;border:1px solid #e5e7eb;border-radius:20px;">マニュアル</a>
+  <a class="logout" href="/logout" style="border-radius:20px;">ログアウト</a>
 </header>
 
 <main>

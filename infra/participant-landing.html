@@ -16,23 +16,16 @@
     }
     header {
       background: #ffffff;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid #ffe4e6;
       padding: 16px 32px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
+      box-shadow: 0 1px 6px rgba(255,116,125,0.08);
     }
-    .logo-badge {
-      background: #7c3aed;
-      color: white;
-      font-weight: 700;
-      font-size: 12px;
-      padding: 3px 9px;
-      border-radius: 5px;
-      letter-spacing: 1px;
-    }
+    .header-logo { height: 28px; object-fit: contain; }
     .vm-name {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 600;
       color: #374151;
     }
@@ -85,8 +78,8 @@
       display: block;
     }
     .card:hover {
-      border-color: #7c3aed;
-      box-shadow: 0 8px 32px rgba(124,58,237,0.12);
+      border-color: #ff747d;
+      box-shadow: 0 8px 32px rgba(255,116,125,0.15);
       transform: translateY(-2px);
     }
     .card-icon {
@@ -113,7 +106,7 @@
       font-size: 11px;
       font-weight: 600;
     }
-    .badge-oh { background: #faf5ff; color: #7c3aed; border: 1px solid #c4b5fd; }
+    .badge-oh { background: #fff5f5; color: #ff747d; border: 1px solid #ffb3b7; }
     .badge-vs { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
 
     footer {
@@ -127,7 +120,7 @@
 </head>
 <body>
   <header>
-    <span class="logo-badge">ISEAI</span>
+    <img class="header-logo" src="https://iseai.jp/ISE-Ai2.svg" alt="ISEAI">
     <span class="vm-name">Clawthon {{VM_NAME}}</span>
     <span class="vm-sub">AI開発環境</span>
   </header>
