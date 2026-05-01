@@ -3,119 +3,201 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Clawthon 管理コンソール</title>
+  <title>Clawthon ISEAI 管理コンソール</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0a0a0f; color: #e0e0e0; font-family: system-ui, sans-serif; }
-    header {
-      background: #13131a; border-bottom: 1px solid #2a2a3a;
-      padding: 0 24px; height: 52px; display: flex; align-items: center; gap: 16px;
-    }
-    header h1 { color: #a78bfa; font-size: 18px; font-weight: 700; flex: 1; }
-    .stat { background: #1e1e2e; border-radius: 6px; padding: 4px 12px; font-size: 13px; color: #9ca3af; }
-    .stat b { color: #e0e0e0; }
-    a.logout { color: #6b7280; font-size: 13px; text-decoration: none; }
+    body { background: #f5f7fa; color: #1f2937; font-family: system-ui, sans-serif; }
 
-    main { max-width: 1300px; margin: 0 auto; padding: 24px; }
-    .panel { background: #13131a; border: 1px solid #2a2a3a; border-radius: 10px; margin-bottom: 24px; }
-    .panel-header { padding: 14px 20px; border-bottom: 1px solid #2a2a3a; font-size: 14px; color: #9ca3af; font-weight: 600; }
+    header {
+      background: #ffffff; border-bottom: 1px solid #e5e7eb;
+      padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .logo-badge { background: #7c3aed; color: white; font-weight: 700; font-size: 12px;
+                  padding: 3px 8px; border-radius: 5px; letter-spacing: 1px; }
+    header h1 { color: #111827; font-size: 16px; font-weight: 700; flex: 1; }
+    .stat { background: #f3f4f6; border-radius: 6px; padding: 4px 12px; font-size: 13px; color: #6b7280; }
+    .stat b { color: #111827; }
+    a.logout { color: #6b7280; font-size: 13px; text-decoration: none; padding: 6px 12px;
+               border: 1px solid #e5e7eb; border-radius: 6px; }
+    a.logout:hover { background: #f3f4f6; }
+
+    main { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .panel { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 24px;
+             box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .panel-header { padding: 14px 20px; border-bottom: 1px solid #f3f4f6;
+                    font-size: 14px; color: #374151; font-weight: 600;
+                    display: flex; align-items: center; gap: 10px; }
+    .panel-header .hint { font-size: 12px; font-weight: 400; color: #9ca3af; }
 
     table { width: 100%; border-collapse: collapse; }
     th { padding: 10px 16px; text-align: left; font-size: 11px; text-transform: uppercase;
-         color: #6b7280; border-bottom: 1px solid #2a2a3a; }
-    td { padding: 12px 16px; border-bottom: 1px solid #1a1a2a; font-size: 13px; vertical-align: middle; }
+         color: #9ca3af; border-bottom: 1px solid #f3f4f6; font-weight: 600; }
+    td { padding: 12px 16px; border-bottom: 1px solid #f9fafb; font-size: 13px; vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #16161f; }
+    tr:hover td { background: #fafafa; }
 
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-    .badge-RUNNING { background: #052e16; color: #4ade80; border: 1px solid #166534; }
-    .badge-TERMINATED { background: #2d0a0a; color: #f87171; border: 1px solid #7f1d1d; }
-    .badge-NOT_EXISTS { background: #1a1a2a; color: #6b7280; border: 1px solid #374151; }
-    .badge-STAGING { background: #1c1a07; color: #fbbf24; border: 1px solid #78350f; }
+    .badge { display: inline-block; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .badge-RUNNING { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+    .badge-TERMINATED { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .badge-NOT_EXISTS { background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
+    .badge-STAGING { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+
+    /* OpenHands ステータスバッジ */
+    .oh-badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+    .oh-ok { background: #dcfce7; color: #16a34a; }
+    .oh-ng { background: #f3f4f6; color: #9ca3af; }
 
     .btn { padding: 5px 12px; border: 1px solid; border-radius: 5px; cursor: pointer;
-           font-size: 12px; font-weight: 500; background: transparent; }
-    .btn-create { color: #a78bfa; border-color: #7c3aed; }
-    .btn-create:hover { background: #7c3aed20; }
-    .btn-start { color: #4ade80; border-color: #16a34a; }
-    .btn-start:hover { background: #16a34a20; }
-    .btn-stop { color: #f87171; border-color: #dc2626; }
-    .btn-stop:hover { background: #dc262620; }
-    .btn-delete { color: #6b7280; border-color: #374151; }
-    .btn-delete:hover { background: #37415120; }
+           font-size: 12px; font-weight: 500; background: transparent; transition: background 0.15s; }
+    .btn-create { color: #7c3aed; border-color: #c4b5fd; }
+    .btn-create:hover { background: #f5f3ff; }
+    .btn-start { color: #16a34a; border-color: #86efac; }
+    .btn-start:hover { background: #f0fdf4; }
+    .btn-stop { color: #dc2626; border-color: #fca5a5; }
+    .btn-stop:hover { background: #fef2f2; }
+    .btn-delete { color: #6b7280; border-color: #e5e7eb; }
+    .btn-delete:hover { background: #f9fafb; }
+    .btn-chat { color: #2563eb; border-color: #bfdbfe; font-size: 11px; }
+    .btn-chat:hover { background: #eff6ff; }
 
-    .link-group a { color: #a78bfa; font-size: 12px; text-decoration: none; margin-right: 10px; }
-    .link-group a:hover { text-decoration: underline; }
+    .link-group { display: flex; flex-wrap: wrap; gap: 6px; }
+    .link-btn { display: inline-block; padding: 4px 10px; border-radius: 5px; font-size: 11px;
+                font-weight: 500; text-decoration: none; border: 1px solid; }
+    .link-oh { color: #7c3aed; border-color: #c4b5fd; background: #faf5ff; }
+    .link-oh:hover { background: #f5f3ff; }
+    .link-vs { color: #2563eb; border-color: #bfdbfe; background: #eff6ff; }
+    .link-vs:hover { background: #dbeafe; }
 
     .key-badge { font-family: monospace; font-size: 11px; color: #6b7280;
-                 background: #1a1a2a; padding: 2px 6px; border-radius: 3px; }
+                 background: #f3f4f6; padding: 2px 6px; border-radius: 3px; }
 
     .add-form { padding: 16px 20px; display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
-    .form-group label { font-size: 11px; color: #6b7280; }
-    .form-group input { padding: 7px 10px; background: #1e1e2e; border: 1px solid #3a3a4a;
-                        border-radius: 5px; color: #e0e0e0; font-size: 13px; outline: none; width: 200px; }
-    .form-group input:focus { border-color: #7c3aed; }
+    .form-group label { font-size: 11px; color: #6b7280; font-weight: 500; }
+    .form-group input { padding: 7px 10px; background: #f9fafb; border: 1px solid #d1d5db;
+                        border-radius: 5px; color: #111827; font-size: 13px; outline: none; width: 200px; }
+    .form-group input:focus { border-color: #7c3aed; box-shadow: 0 0 0 2px #7c3aed20; }
     .btn-add { padding: 7px 16px; background: #7c3aed; border: none; border-radius: 5px;
                color: white; font-size: 13px; cursor: pointer; font-weight: 600; }
     .btn-add:hover { background: #6d28d9; }
 
-    details summary { cursor: pointer; font-size: 12px; color: #6b7280; }
-    details[open] summary { color: #a78bfa; }
-    .settings-form { margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    details summary { cursor: pointer; font-size: 12px; color: #6b7280; list-style: none; }
+    details summary::-webkit-details-marker { display: none; }
+    details[open] summary { color: #7c3aed; }
+    .settings-form { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .settings-form input, .settings-form select {
-      padding: 4px 8px; background: #1e1e2e; border: 1px solid #3a3a4a;
-      border-radius: 4px; color: #e0e0e0; font-size: 12px; outline: none;
+      padding: 5px 8px; background: #f9fafb; border: 1px solid #d1d5db;
+      border-radius: 4px; color: #111827; font-size: 12px; outline: none;
     }
-    .settings-form input { width: 220px; font-family: monospace; }
-    .btn-save { padding: 4px 10px; background: #374151; border: none; border-radius: 4px;
-                color: #e0e0e0; font-size: 12px; cursor: pointer; }
+    .settings-form input { width: 240px; font-family: monospace; }
+    .settings-form select { min-width: 140px; }
+    .btn-save { padding: 5px 10px; background: #7c3aed; border: none; border-radius: 4px;
+                color: white; font-size: 12px; cursor: pointer; font-weight: 500; }
+    .btn-save:hover { background: #6d28d9; }
+
+    .version-badge { font-family: monospace; font-size: 11px; color: #7c3aed;
+                     background: #faf5ff; padding: 2px 6px; border-radius: 3px;
+                     border: 1px solid #c4b5fd; }
+
+    /* OpenHands チャットパネル */
+    .chat-panel { padding: 0; overflow: hidden; border-radius: 10px; }
+    .chat-panel iframe { width: 100%; height: 600px; border: none; display: block; }
+    .chat-placeholder { padding: 48px; text-align: center; color: #9ca3af; }
+    .chat-placeholder .hint { font-size: 13px; margin-top: 8px; }
+
+    .tab-bar { display: flex; gap: 4px; padding: 12px 16px; border-bottom: 1px solid #f3f4f6; }
+    .tab { padding: 6px 14px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 12px;
+           cursor: pointer; background: transparent; color: #6b7280; font-weight: 500; }
+    .tab.active { background: #7c3aed; color: white; border-color: #7c3aed; }
+    .tab:hover:not(.active) { background: #f9fafb; }
+
+    .oh-config-bar { padding: 12px 20px; background: #faf5ff; border-bottom: 1px solid #e9d5ff;
+                     display: flex; align-items: center; gap: 12px; font-size: 13px; flex-wrap: wrap; }
+    .oh-config-bar label { color: #7c3aed; font-weight: 500; font-size: 12px; }
+    .oh-config-bar input, .oh-config-bar select {
+      padding: 4px 8px; border: 1px solid #c4b5fd; border-radius: 4px; font-size: 12px;
+      background: white; outline: none; color: #111827;
+    }
+    .oh-config-bar input { width: 200px; font-family: monospace; }
+    .btn-apply { padding: 5px 12px; background: #7c3aed; border: none; border-radius: 4px;
+                 color: white; font-size: 12px; cursor: pointer; }
   </style>
   <script>
     // 30秒ごとに自動リフレッシュ
     setTimeout(() => location.reload(), 30000);
+
+    // OpenHandsチャットパネル切り替え
+    function openChat(pid, vmName) {
+      const panel = document.getElementById('chat-panel');
+      const title = document.getElementById('chat-title');
+      const frame = document.getElementById('chat-frame');
+      panel.style.display = 'block';
+      title.textContent = '🤖 ' + vmName + ' — OpenHands';
+      frame.src = 'https://' + vmName + '.iseai.neuratools.ai/openhands/';
+      panel.scrollIntoView({ behavior: 'smooth' });
+    }
   </script>
 </head>
 <body>
 <header>
+  <span class="logo-badge">ISEAI</span>
   <h1>Clawthon ISEAI 管理コンソール</h1>
   <div class="stat">参加者 <b>{{ total }}</b></div>
-  <div class="stat">稼働中 <b style="color:#4ade80">{{ running }}</b></div>
+  <div class="stat">稼働中 <b style="color:#16a34a">{{ running }}</b></div>
+  <div class="stat" title="概算コスト（GCP+SPOT）">💴 <b>¥{{ cost_hourly }}/時</b> <span style="font-size:11px;color:#9ca3af">（¥{{ cost_event }}/2日間）</span></div>
+  <a href="/manual" style="color:#6b7280;font-size:13px;text-decoration:none;padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;">マニュアル</a>
   <a class="logout" href="/logout">ログアウト</a>
 </header>
 
 <main>
   <!-- 参加者一覧 -->
   <div class="panel">
-    <div class="panel-header">参加者 & VM ステータス</div>
+    <div class="panel-header">
+      参加者 &amp; VM ステータス
+      <span class="hint">30秒ごとに自動更新</span>
+    </div>
     <table>
       <thead>
         <tr>
           <th>#</th>
           <th>名前 / メール</th>
           <th>VM状態</th>
-          <th>アクセスURL</th>
-          <th>APIキー設定</th>
+          <th>OpenHands</th>
+          <th>アクセス</th>
+          <th>APIキー / モデル</th>
           <th>操作</th>
         </tr>
       </thead>
       <tbody>
         {% for p in participants %}
         <tr>
-          <td style="color:#6b7280">{{ p.id }}</td>
+          <td style="color:#9ca3af;font-weight:500">{{ p.id }}</td>
           <td>
-            <div style="font-weight:500">{{ p.name }}</div>
-            <div style="color:#6b7280;font-size:11px">{{ p.email }}</div>
+            <div style="font-weight:600;color:#111827">{{ p.name }}</div>
+            <div style="color:#9ca3af;font-size:11px">{{ p.email }}</div>
           </td>
           <td><span class="badge badge-{{ p.vm_status }}">{{ p.vm_status }}</span></td>
           <td>
             {% if p.vm_status == 'RUNNING' %}
+              {% if p.oh_status %}
+                <span class="oh-badge oh-ok">稼働中</span>
+              {% else %}
+                <span class="oh-badge oh-ng">未起動</span>
+              {% endif %}
+            {% else %}
+              <span style="color:#d1d5db;font-size:12px">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if p.vm_status == 'RUNNING' %}
             <div class="link-group">
-              <a href="{{ p.url_openhands }}" target="_blank">OpenHands</a>
-              <a href="{{ p.url_vscode }}" target="_blank">VSCode</a>
+              <a class="link-btn link-oh" href="{{ p.url_openhands }}" target="_blank">OpenHands</a>
+              <a class="link-btn link-vs" href="{{ p.url_vscode }}" target="_blank">VSCode</a>
+              <button class="btn btn-chat" onclick="openChat('{{ p.id }}', 'p{{ p.id }}')">チャット</button>
             </div>
             {% else %}
-            <span style="color:#374151;font-size:12px">—</span>
+            <span style="color:#d1d5db;font-size:12px">—</span>
             {% endif %}
           </td>
           <td>
@@ -123,13 +205,20 @@
               <summary>
                 {% if p.litellm_key %}
                 <span class="key-badge">{{ p.litellm_key[:16] }}...</span>
-                {% else %}未設定{% endif %}
+                {% elif p.api_key %}
+                <span class="key-badge">{{ p.api_key[:12] }}...</span>
+                {% else %}
+                <span style="color:#d97706;font-size:12px">⚠ 未設定</span>
+                {% endif %}
+                <span style="font-size:11px;color:#c4b5fd;margin-left:6px">▼ 編集</span>
               </summary>
               <form method="post" action="/participants/{{ p.id }}/update" class="settings-form">
-                <input type="text" name="api_key" value="{{ p.api_key }}" placeholder="APIキー (OpenRouter/Anthropic)">
+                <input type="text" name="api_key" value="{{ p.api_key }}" placeholder="APIキー (例: sk-ant-...)">
                 <select name="model">
+                  <option value="claude-sonnet-4-5" {% if p.model == 'claude-sonnet-4-5' %}selected{% endif %}>Claude Sonnet 4.5</option>
                   <option value="claude-sonnet" {% if p.model == 'claude-sonnet' %}selected{% endif %}>Claude Sonnet</option>
                   <option value="claude-haiku" {% if p.model == 'claude-haiku' %}selected{% endif %}>Claude Haiku</option>
+                  <option value="gpt-4o" {% if p.model == 'gpt-4o' %}selected{% endif %}>GPT-4o</option>
                   <option value="gemini-flash" {% if p.model == 'gemini-flash' %}selected{% endif %}>Gemini Flash</option>
                 </select>
                 <button type="submit" class="btn-save">保存</button>
@@ -163,7 +252,7 @@
         {% endfor %}
         {% if not participants %}
         <tr>
-          <td colspan="6" style="text-align:center;color:#374151;padding:32px">
+          <td colspan="7" style="text-align:center;color:#9ca3af;padding:48px">
             参加者が登録されていません。下のフォームから追加してください。
           </td>
         </tr>
@@ -172,7 +261,7 @@
     </table>
 
     <!-- 参加者追加フォーム -->
-    <div style="border-top:1px solid #2a2a3a">
+    <div style="border-top:1px solid #f3f4f6">
       <form method="post" action="/participants/add" class="add-form">
         <div class="form-group">
           <label>名前</label>
@@ -182,8 +271,38 @@
           <label>メールアドレス</label>
           <input type="email" name="email" placeholder="taro@example.com" required>
         </div>
-        <button type="submit" class="btn-add">+ 参加者を追加</button>
+        <button type="submit" class="btn-add">＋ 参加者を追加</button>
       </form>
+    </div>
+  </div>
+
+  <!-- OpenHands グローバル設定 -->
+  <div class="panel">
+    <div class="panel-header">
+      OpenHands 設定
+      <span class="hint">バージョンと接続先APIを管理します</span>
+    </div>
+    <form method="post" action="/settings/openhands" class="oh-config-bar">
+      <label>OpenHandsバージョン</label>
+      <select name="oh_version">
+        <option value="latest" {% if oh_version == 'latest' %}selected{% endif %}>latest（最新）</option>
+        <option value="0.29" {% if oh_version == '0.29' %}selected{% endif %}>0.29</option>
+        <option value="0.28" {% if oh_version == '0.28' %}selected{% endif %}>0.28</option>
+        <option value="0.27" {% if oh_version == '0.27' %}selected{% endif %}>0.27</option>
+      </select>
+      <label>LiteLLM URL</label>
+      <input type="text" name="litellm_url" value="{{ litellm_url }}" placeholder="http://localhost:4000">
+      <label>LiteLLM マスターキー</label>
+      <input type="text" name="litellm_master_key" value="{{ litellm_master_key }}" placeholder="sk-...">
+      <button type="submit" class="btn-apply">設定を保存 &amp; VM再起動</button>
+    </form>
+  </div>
+
+  <!-- OpenHands チャットパネル -->
+  <div class="panel" id="chat-panel" style="display:none">
+    <div class="panel-header" id="chat-title">OpenHands チャット</div>
+    <div class="chat-panel">
+      <iframe id="chat-frame" src="" allow="camera; microphone" allowfullscreen></iframe>
     </div>
   </div>
 </main>

@@ -1,0 +1,50 @@
+name: 管理コンソール デプロイ
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'console/**'
+      - 'infra/**'
+
+jobs:
+  deploy:
+    name: 管理VMへデプロイ
+    runs-on: ubuntu-latest
+    steps:
+      - name: コードをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: SSH鍵を設定
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: 既知のホストを追加
+        run: |
+          ssh-keyscan -H 34.84.2.212 >> ~/.ssh/known_hosts
+
+      - name: 管理VMにデプロイ
+        run: |
+          # コードをコピー
+          rsync -avz --delete \
+            console/ \
+            shintaku81@34.84.2.212:/opt/clawthon/console/
+
+          rsync -avz --delete \
+            infra/ \
+            shintaku81@34.84.2.212:/opt/clawthon/infra/
+
+          # スクリプトに実行権限を付与
+          ssh shintaku81@34.84.2.212 'chmod +x /opt/clawthon/infra/*.sh'
+
+          # サービスを再起動
+          ssh shintaku81@34.84.2.212 'sudo systemctl restart clawthon-console'
+
+          # ヘルスチェック
+          sleep 5
+          ssh shintaku81@34.84.2.212 'sudo systemctl is-active clawthon-console'
+
+      - name: デプロイ完了通知
+        if: success()
+        run: echo "✅ デプロイ完了 — https://console.iseai.neuratools.ai"

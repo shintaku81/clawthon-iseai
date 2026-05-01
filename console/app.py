@@ -14,6 +14,7 @@ PROJECT = "clawthon-iseai"
 ZONE = "asia-northeast1-b"
 GCLOUD = os.getenv("GCLOUD_PATH", "/usr/bin/gcloud")
 DATA_FILE = Path("/opt/clawthon/console/participants.json")
+SETTINGS_FILE = Path("/opt/clawthon/console/settings.json")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "clawthon2026")
 ADMIN_TOKEN = hashlib.sha256(ADMIN_PASSWORD.encode()).hexdigest()
 LITELLM_MASTER_KEY = os.getenv("LITELLM_MASTER_KEY", "clawthon-master-key")
@@ -22,6 +23,7 @@ DNS_ZONE = "iseai-neuratools"
 DOMAIN = "iseai.neuratools.ai"
 STAR_NAMES = ["vega", "altair", "rigel", "sirius", "deneb", "antares", "aldebaran", "betelgeuse", "arcturus", "spica"]
 CLOUD_INIT_TEMPLATE = Path("/opt/clawthon/infra/cloud-init-participant.yaml")
+DEFAULT_OH_VERSION = "latest"
 
 
 def load_data():
@@ -33,6 +35,22 @@ def load_data():
 
 def save_data(data):
     DATA_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+
+
+def load_settings():
+    if not SETTINGS_FILE.exists():
+        defaults = {
+            "oh_version": DEFAULT_OH_VERSION,
+            "litellm_url": LITELLM_URL,
+            "litellm_master_key": LITELLM_MASTER_KEY,
+        }
+        SETTINGS_FILE.write_text(json.dumps(defaults, indent=2))
+        return defaults
+    return json.loads(SETTINGS_FILE.read_text())
+
+
+def save_settings(s):
+    SETTINGS_FILE.write_text(json.dumps(s, indent=2))
 
 
 import asyncio
@@ -94,6 +112,18 @@ def get_vm_ip(pid: str) -> str:
     ])
 
 
+async def check_openhands_async(vm_ip: str) -> bool:
+    """OpenHandsポート3000が応答するか確認"""
+    if not vm_ip:
+        return False
+    try:
+        async with httpx.AsyncClient(timeout=3) as client:
+            r = await client.get(f"http://{vm_ip}:3000/", follow_redirects=True)
+            return r.status_code < 500
+    except Exception:
+        return False
+
+
 def is_admin(session_token: str = None) -> bool:
     return session_token == ADMIN_TOKEN
 
@@ -128,6 +158,7 @@ async def dashboard(request: Request, session: str = Cookie(default="")):
     if not is_admin(session):
         return RedirectResponse("/login")
     data = load_data()
+    settings = load_settings()
     participants = data["participants"]
     # 全VMのステータスを並列取得
     statuses = await asyncio.gather(*[get_vm_status_async(p["id"]) for p in participants])
@@ -136,16 +167,42 @@ async def dashboard(request: Request, session: str = Cookie(default="")):
         return await get_vm_ip_async(pid) if st == "RUNNING" else ""
 
     ips = await asyncio.gather(*[maybe_ip(p["id"], st) for p, st in zip(participants, statuses)])
-    for p, st, ip in zip(participants, statuses, ips):
+
+    async def _false():
+        return False
+
+    # OpenHandsステータスを並列チェック
+    oh_statuses = await asyncio.gather(*[
+        check_openhands_async(ip) if st == "RUNNING" else _false()
+        for ip, st in zip(ips, statuses)
+    ])
+
+    for p, st, ip, oh in zip(participants, statuses, ips, oh_statuses):
         p["vm_status"] = st
         p["vm_ip"] = ip
-        p["url_openhands"] = f"http://p{p['id']}.{DOMAIN}"
-        p["url_vscode"] = f"http://p{p['id']}.{DOMAIN}:8080"
+        p["oh_status"] = oh
+        p["url_openhands"] = f"https://p{p['id']}.{DOMAIN}/openhands/"
+        p["url_vscode"] = f"https://p{p['id']}.{DOMAIN}/code/"
+
+    running_count = sum(1 for p in participants if p["vm_status"] == "RUNNING")
+    # コスト概算（円）: 管理VM e2-small $0.017/h + 参加者VM e2-standard-2 SPOT $0.025/h
+    MGMT_HOURLY_JPY = 0.017 * 150  # $0.017 × 150円/ドル
+    PART_HOURLY_JPY = 0.025 * 150
+    cost_hourly = MGMT_HOURLY_JPY + PART_HOURLY_JPY * running_count
+    cost_daily = cost_hourly * 24
+    cost_event = cost_daily * 2  # ハッカソン2日間想定
+
     return templates.TemplateResponse("index.html", {
         "request": request,
         "participants": participants,
         "total": len(participants),
-        "running": sum(1 for p in participants if p["vm_status"] == "RUNNING"),
+        "running": running_count,
+        "oh_version": settings.get("oh_version", DEFAULT_OH_VERSION),
+        "litellm_url": settings.get("litellm_url", LITELLM_URL),
+        "litellm_master_key": settings.get("litellm_master_key", LITELLM_MASTER_KEY),
+        "cost_hourly": round(cost_hourly),
+        "cost_daily": round(cost_daily),
+        "cost_event": round(cost_event),
     })
 
 
@@ -167,7 +224,7 @@ async def add_participant(
         "email": email,
         "litellm_key": "",
         "api_key": "",
-        "model": "claude-sonnet",
+        "model": "claude-sonnet-4-5",
         "created_at": datetime.now().isoformat(),
     })
     save_data(data)
@@ -178,7 +235,7 @@ async def add_participant(
 async def update_participant(
     pid: str,
     api_key: str = Form(""),
-    model: str = Form("claude-sonnet"),
+    model: str = Form("claude-sonnet-4-5"),
     session: str = Cookie(default="")
 ):
     if not is_admin(session):
@@ -193,6 +250,32 @@ async def update_participant(
     return RedirectResponse("/", status_code=303)
 
 
+# ─── OpenHands設定 ────────────────────────────────────
+
+@app.post("/settings/openhands")
+async def update_oh_settings(
+    oh_version: str = Form(DEFAULT_OH_VERSION),
+    litellm_url: str = Form(LITELLM_URL),
+    litellm_master_key: str = Form(LITELLM_MASTER_KEY),
+    session: str = Cookie(default="")
+):
+    if not is_admin(session):
+        raise HTTPException(403)
+    settings = load_settings()
+    settings["oh_version"] = oh_version
+    settings["litellm_url"] = litellm_url
+    settings["litellm_master_key"] = litellm_master_key
+    save_settings(settings)
+    # 全稼働VMのOpenHandsを再起動（バックグラウンド）
+    data = load_data()
+    for p in data["participants"]:
+        subprocess.Popen([
+            "bash", "/opt/clawthon/infra/restart-openhands.sh",
+            p["id"], oh_version, litellm_url, litellm_master_key
+        ])
+    return RedirectResponse("/", status_code=303)
+
+
 # ─── VM操作 ──────────────────────────────────────────
 
 @app.post("/vm/{pid}/create")
@@ -200,16 +283,21 @@ async def create_vm(pid: str, session: str = Cookie(default="")):
     if not is_admin(session):
         raise HTTPException(403)
     data = load_data()
+    settings = load_settings()
     p = next((x for x in data["participants"] if x["id"] == pid), None)
     if not p:
         raise HTTPException(404)
+
+    # APIキーが設定されていない場合はエラー
+    if not p.get("api_key") and not p.get("litellm_key"):
+        return RedirectResponse("/?error=APIキーを設定してからVMを作成してください", status_code=303)
 
     # LiteLLMキー発行
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.post(
-                f"{LITELLM_URL}/key/generate",
-                headers={"Authorization": f"Bearer {LITELLM_MASTER_KEY}"},
+                f"{settings['litellm_url']}/key/generate",
+                headers={"Authorization": f"Bearer {settings['litellm_master_key']}"},
                 json={
                     "key_alias": f"p{pid}",
                     "max_budget": 5.0,
@@ -226,7 +314,7 @@ async def create_vm(pid: str, session: str = Cookie(default="")):
     # VM作成をバックグラウンドで実行
     subprocess.Popen([
         "bash", "/opt/clawthon/infra/create-participant-vm.sh",
-        pid, p["litellm_key"], p["model"]
+        pid, p["litellm_key"], p["model"], settings.get("oh_version", DEFAULT_OH_VERSION)
     ])
     return RedirectResponse("/", status_code=303)
 
@@ -261,7 +349,6 @@ async def delete_vm(pid: str, session: str = Cookie(default="")):
         "compute", "instances", "delete", f"clawthon-p{pid}",
         f"--project={PROJECT}", f"--zone={ZONE}", "--quiet"
     ])
-    # DNS削除
     gcloud_run([
         "dns", "record-sets", "delete", f"p{pid}.{DOMAIN}.",
         f"--project={PROJECT}", f"--zone={DNS_ZONE}", "--type=A"
@@ -285,6 +372,13 @@ async def api_status(session: str = Cookie(default="")):
         }
         for p in data["participants"]
     ]
+
+
+@app.get("/manual", response_class=HTMLResponse)
+async def manual(request: Request, session: str = Cookie(default="")):
+    if not is_admin(session):
+        return RedirectResponse("/login")
+    return templates.TemplateResponse("manual.html", {"request": request})
 
 
 if __name__ == "__main__":

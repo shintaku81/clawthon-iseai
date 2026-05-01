@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>運営マニュアル — Clawthon ISEAI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f5f7fa; color: #1f2937; font-family: system-ui, sans-serif; }
+    header {
+      background: #ffffff; border-bottom: 1px solid #e5e7eb;
+      padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .logo-badge { background: #7c3aed; color: white; font-weight: 700; font-size: 12px;
+                  padding: 3px 8px; border-radius: 5px; letter-spacing: 1px; }
+    header h1 { color: #111827; font-size: 16px; font-weight: 700; flex: 1; }
+    a.back { color: #6b7280; font-size: 13px; text-decoration: none;
+             padding: 6px 12px; border: 1px solid #e5e7eb; border-radius: 6px; }
+    a.back:hover { background: #f3f4f6; }
+    main { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+    h2 { font-size: 22px; font-weight: 700; color: #111827; margin-bottom: 20px; }
+    .section { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px;
+               padding: 28px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .section-title { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 16px;
+                     padding-bottom: 10px; border-bottom: 2px solid #f3f4f6;
+                     display: flex; align-items: center; gap: 8px; }
+    .section-icon { font-size: 20px; }
+    p { font-size: 14px; line-height: 1.8; color: #374151; margin-bottom: 12px; }
+    ol, ul { padding-left: 20px; margin-bottom: 12px; }
+    li { font-size: 14px; line-height: 1.8; color: #374151; margin-bottom: 4px; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 13px;
+           font-family: monospace; color: #7c3aed; }
+    .code-block { background: #1f2937; color: #e5e7eb; padding: 16px; border-radius: 8px;
+                  font-family: monospace; font-size: 13px; margin: 12px 0; overflow-x: auto;
+                  line-height: 1.6; }
+    .tip { background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 6px;
+           padding: 12px 16px; margin: 12px 0; font-size: 13px; color: #6d28d9; }
+    .warning { background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px;
+               padding: 12px 16px; margin: 12px 0; font-size: 13px; color: #92400e; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    th { background: #f9fafb; padding: 10px 14px; text-align: left; font-size: 12px;
+         color: #6b7280; border: 1px solid #e5e7eb; font-weight: 600; }
+    td { padding: 10px 14px; font-size: 13px; border: 1px solid #e5e7eb; color: #374151; }
+    .badge-purple { background: #faf5ff; color: #7c3aed; border: 1px solid #c4b5fd;
+                    padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  </style>
+</head>
+<body>
+<header>
+  <span class="logo-badge">ISEAI</span>
+  <h1>Clawthon ISEAI — 運営マニュアル</h1>
+  <a class="back" href="/">← ダッシュボードへ</a>
+</header>
+
+<main>
+  <h2>運営者向け操作ガイド</h2>
+
+  <!-- 1. ハッカソン当日の手順 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-icon">📋</span>当日の準備手順
+    </div>
+    <p>ハッカソン開始前に以下の順で準備してください。</p>
+    <ol>
+      <li><strong>参加者情報を登録</strong> — ダッシュボード下部のフォームから名前・メールを追加</li>
+      <li><strong>APIキーを設定</strong> — 各参加者行の「▼ 編集」を開いてAnthropicまたはOpenRouterのAPIキーを貼り付け → 保存</li>
+      <li><strong>VMを作成</strong> — 「作成」ボタンを押す（バックグラウンドで5〜10分かかります）</li>
+      <li><strong>参加者にURLを共有</strong> — <code>https://p01.iseai.neuratools.ai</code> の形式でURLを配布</li>
+    </ol>
+    <div class="tip">💡 APIキーを設定してから「作成」ボタンを押してください。APIキーはVMの起動時に自動で注入されます。</div>
+  </div>
+
+  <!-- 2. 参加者VM管理 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-icon">🖥️</span>参加者VM 管理
+    </div>
+    <table>
+      <tr>
+        <th>操作</th><th>説明</th><th>所要時間</th>
+      </tr>
+      <tr>
+        <td><span class="badge-purple">作成</span></td>
+        <td>新規VMを作成。cloud-initでDocker・OpenHands・code-serverを自動セットアップ</td>
+        <td>5〜10分</td>
+      </tr>
+      <tr>
+        <td><span class="badge-purple">起動</span></td>
+        <td>停止中のVMを再起動（SPOTインスタンスは自動停止する場合あり）</td>
+        <td>1〜2分</td>
+      </tr>
+      <tr>
+        <td><span class="badge-purple">停止</span></td>
+        <td>VMをシャットダウン。データは保持される</td>
+        <td>30秒</td>
+      </tr>
+      <tr>
+        <td><span class="badge-purple">削除</span></td>
+        <td>VMとDNSレコードを完全削除。データも消えるので注意</td>
+        <td>1分</td>
+      </tr>
+    </table>
+    <div class="warning">⚠️ SPOT（プリエンプティブル）インスタンスはGCPのリソース不足時に自動停止されます。停止した場合は「起動」ボタンで再起動してください。</div>
+  </div>
+
+  <!-- 3. OpenHands -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-icon">🤖</span>OpenHands の操作
+    </div>
+    <p>OpenHandsはAIエージェントが自律的にコードを書くツールです。参加者は自然言語でタスクを指示できます。</p>
+    <ul>
+      <li><strong>参加者URL</strong>: <code>https://p01.iseai.neuratools.ai/openhands/</code></li>
+      <li><strong>コンソールからチャット</strong>: ダッシュボードの「チャット」ボタンで管理画面内に埋め込み表示</li>
+      <li><strong>バージョン変更</strong>: 「OpenHands 設定」パネルでバージョンを選択 → 「設定を保存 &amp; VM再起動」</li>
+    </ul>
+    <div class="tip">💡 OpenHandsが「未起動」と表示されている場合は、APIキーが未設定か、コンテナの起動に時間がかかっています。VM作成から5分ほどお待ちください。</div>
+  </div>
+
+  <!-- 4. code-server (VSCode) -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-icon">💻</span>VSCode (code-server) の操作
+    </div>
+    <p>参加者はブラウザ上でVSCodeを使ってコードを編集できます。</p>
+    <ul>
+      <li><strong>参加者URL</strong>: <code>https://p01.iseai.neuratools.ai/code/</code></li>
+      <li><strong>パスワード</strong>: <code>clawthon2026</code></li>
+      <li><strong>ワークスペース</strong>: <code>/opt/clawthon/workspace</code> にマウント済み</li>
+    </ul>
+  </div>
+
+  <!-- 5. コスト管理 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-icon">💴</span>コスト管理
+    </div>
+    <p>ダッシュボードのヘッダーに概算コストを表示しています。</p>
+    <table>
+      <tr>
+        <th>リソース</th><th>スペック</th><th>料金（概算）</th>
+      </tr>
+      <tr>
+        <td>管理VM (polaris)</td>
+        <td>e2-small, 常時稼働</td>
+        <td>$0.017/時 ≈ ¥2.5/時</td>
+      </tr>
+      <tr>
+        <td>参加者VM (vega等)</td>
+        <td>e2-standard-2, SPOT</td>
+        <td>$0.025/時 ≈ ¥3.75/時/台</td>
+      </tr>
+      <tr>
+        <td>Cloud DNS</td>
+        <td>ゾーン1個</td>
+        <td>$0.20/月</td>
+      </tr>
+    </table>
+    <p><strong>例：参加者10人、2日間（48時間）のコスト概算：</strong></p>
+    <div class="code-block">管理VM:   $0.017 × 48 = $0.82
+参加者VM: $0.025 × 48 × 10台 = $12.00
+合計:     $12.82 ≈ ¥1,923（150円/ドル換算）</div>
+    <div class="tip">💡 ハッカソン終了後は「停止」または「削除」でコストを抑えてください。SPOTインスタンスは通常の約70%引きです。</div>
+  </div>
+
+  <!-- 6. トラブルシューティング -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-icon">🔧</span>トラブルシューティング
+    </div>
+    <table>
+      <tr>
+        <th>症状</th><th>原因</th><th>対処</th>
+      </tr>
+      <tr>
+        <td>VMが「TERMINATED」になった</td>
+        <td>SPOTインスタンスがGCPに回収された</td>
+        <td>「起動」ボタンで再起動</td>
+      </tr>
+      <tr>
+        <td>OpenHandsが「未起動」のまま</td>
+        <td>APIキー未設定 / コンテナ起動中</td>
+        <td>APIキーを確認。VM作成後5分待つ</td>
+      </tr>
+      <tr>
+        <td>ページが開かない（SSL エラー）</td>
+        <td>証明書の更新失敗 / nginx停止</td>
+        <td>VM再起動後にcertbot renewを実行</td>
+      </tr>
+      <tr>
+        <td>管理コンソールにアクセスできない</td>
+        <td>サービス停止</td>
+        <td>管理VMにSSHして <code>sudo systemctl restart clawthon-console</code></td>
+      </tr>
+    </table>
+
+    <p style="margin-top:16px"><strong>緊急SSHコマンド:</strong></p>
+    <div class="code-block">
+# 管理VMへSSH
+gcloud compute ssh clawthon-management --project=clawthon-iseai --zone=asia-northeast1-b
+
+# 参加者VMへSSH
+gcloud compute ssh clawthon-p01 --project=clawthon-iseai --zone=asia-northeast1-b
+
+# コンソール再起動
+sudo systemctl restart clawthon-console
+sudo systemctl status clawthon-console
+
+# OpenHands再起動
+sudo docker restart openhands
+
+# SSL証明書更新
+sudo certbot renew --nginx</div>
+  </div>
+
+  <!-- 7. URL一覧 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-icon">🔗</span>URL一覧
+    </div>
+    <table>
+      <tr>
+        <th>サービス</th><th>URL</th><th>パスワード</th>
+      </tr>
+      <tr>
+        <td>管理コンソール</td>
+        <td><a href="https://console.iseai.neuratools.ai" target="_blank">https://console.iseai.neuratools.ai</a></td>
+        <td>（管理パスワード）</td>
+      </tr>
+      <tr>
+        <td>参加者01 トップ</td>
+        <td><a href="https://p01.iseai.neuratools.ai" target="_blank">https://p01.iseai.neuratools.ai</a></td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td>参加者01 OpenHands</td>
+        <td><a href="https://p01.iseai.neuratools.ai/openhands/" target="_blank">https://p01.iseai.neuratools.ai/openhands/</a></td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td>参加者01 VSCode</td>
+        <td><a href="https://p01.iseai.neuratools.ai/code/" target="_blank">https://p01.iseai.neuratools.ai/code/</a></td>
+        <td>clawthon2026</td>
+      </tr>
+      <tr>
+        <td>GCPコンソール</td>
+        <td><a href="https://console.cloud.google.com/compute/instances?project=clawthon-iseai" target="_blank">GCP Compute Engine</a></td>
+        <td>—</td>
+      </tr>
+    </table>
+  </div>
+</main>
+</body>
+</html>

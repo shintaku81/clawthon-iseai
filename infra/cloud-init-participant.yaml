@@ -1,51 +1,57 @@
 #cloud-config
-# Variables substituted at creation time:
-#   PARTICIPANT_ID, LITELLM_KEY, MODEL_NAME
+# 変数はVM作成時に置換される:
+#   PARTICIPANT_ID_PLACEHOLDER, LITELLM_KEY_PLACEHOLDER, MODEL_PLACEHOLDER,
+#   OH_VERSION_PLACEHOLDER, DOMAIN_PLACEHOLDER, MANAGEMENT_IP_PLACEHOLDER
 package_update: true
 
 packages:
   - docker.io
-  - docker-compose
+  - docker-compose-v2
   - nginx
+  - certbot
+  - python3-certbot-nginx
 
 runcmd:
   - systemctl enable docker && systemctl start docker
-  - mkdir -p /opt/clawthon/workspace
+  - mkdir -p /opt/clawthon/workspace ~/.openhands
+
+  # code-server 起動
   - |
-    cat > /opt/clawthon/docker-compose.yml << 'COMPOSE'
-    version: '3.8'
-    services:
-      openhands:
-        image: docker.all-hands.dev/all-hands-ai/openhands:0.38
-        environment:
-          - LLM_API_KEY=LITELLM_KEY_PLACEHOLDER
-          - LLM_BASE_URL=http://MANAGEMENT_IP_PLACEHOLDER:4000
-          - LLM_MODEL=MODEL_PLACEHOLDER
-          - SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.38-nikolaik
-          - WORKSPACE_BASE=/opt/workspace
-        volumes:
-          - /opt/clawthon/workspace:/opt/workspace
-          - /var/run/docker.sock:/var/run/docker.sock
-        ports:
-          - "3000:3000"
-        restart: unless-stopped
-      code-server:
-        image: codercom/code-server:latest
-        environment:
-          - PASSWORD=clawthon2026
-          - HASHED_PASSWORD=
-        volumes:
-          - /opt/clawthon/workspace:/home/coder/project
-        ports:
-          - "8080:8080"
-        restart: unless-stopped
-    COMPOSE
-  - cd /opt/clawthon && docker compose up -d
+    docker run -d --name code-server --restart=unless-stopped \
+      -p 8080:8080 \
+      -e PASSWORD=clawthon2026 \
+      -v /opt/clawthon/workspace:/home/coder/project \
+      codercom/code-server:latest
+
+  # OpenHands 起動
+  - |
+    docker run -d --name openhands --restart=unless-stopped \
+      -p 3000:3000 \
+      -e LLM_API_KEY=LITELLM_KEY_PLACEHOLDER \
+      -e LLM_BASE_URL=http://MANAGEMENT_IP_PLACEHOLDER:4000 \
+      -e LLM_MODEL=MODEL_PLACEHOLDER \
+      -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:OH_VERSION_PLACEHOLDER-nikolaik \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      -v /opt/clawthon/workspace:/opt/workspace \
+      -v ~/.openhands:/root/.openhands \
+      docker.all-hands.dev/all-hands-ai/openhands:OH_VERSION_PLACEHOLDER
+
+  # nginx 設定（server_name込み）
   - |
     cat > /etc/nginx/sites-available/clawthon << 'NGINX'
     server {
-        listen 80 default_server;
+        listen 80;
+        server_name pPARTICIPANT_ID_PLACEHOLDER.DOMAIN_PLACEHOLDER;
         client_max_body_size 100M;
+
+        location /openhands/ {
+            proxy_pass http://localhost:3000/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_read_timeout 300s;
+        }
         location /code/ {
             proxy_pass http://localhost:8080/;
             proxy_http_version 1.1;
@@ -53,16 +59,15 @@ runcmd:
             proxy_set_header Connection "upgrade";
             proxy_set_header Host $host;
         }
+        root /var/www/clawthon;
+        index index.html;
         location / {
-            proxy_pass http://localhost:3000/;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_set_header Host $host;
+            try_files $uri $uri/ /index.html;
         }
     }
     NGINX
   - ln -sf /etc/nginx/sites-available/clawthon /etc/nginx/sites-enabled/clawthon
   - rm -f /etc/nginx/sites-enabled/default
+  - mkdir -p /var/www/clawthon
   - nginx -t && systemctl reload nginx
-  - echo "Participant VM ready" > /tmp/init-done.txt
+  - echo "参加者VM初期化完了" > /tmp/init-done.txt
