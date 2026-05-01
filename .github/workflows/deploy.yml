@@ -6,6 +6,7 @@ on:
     paths:
       - 'console/**'
       - 'infra/**'
+  workflow_dispatch:
 
 jobs:
   deploy:
