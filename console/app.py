@@ -20,6 +20,7 @@ LITELLM_MASTER_KEY = os.getenv("LITELLM_MASTER_KEY", "clawthon-master-key")
 LITELLM_URL = os.getenv("LITELLM_URL", "http://localhost:4000")
 DNS_ZONE = "iseai-neuratools"
 DOMAIN = "iseai.neuratools.ai"
+STAR_NAMES = ["vega", "altair", "rigel", "sirius", "deneb", "antares", "aldebaran", "betelgeuse", "arcturus", "spica"]
 CLOUD_INIT_TEMPLATE = Path("/opt/clawthon/infra/cloud-init-participant.yaml")
 
 
