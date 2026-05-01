@@ -4,166 +4,451 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Clawthon ISEAI 管理コンソール</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #f5f7fa; color: #1f2937; font-family: system-ui, sans-serif; }
-
-    header {
-      background: #ffffff; border-bottom: 1px solid #ffe4e6;
-      padding: 0 24px; height: 60px; display: flex; align-items: center; gap: 16px;
-      box-shadow: 0 1px 6px rgba(255,116,125,0.1);
+    :root {
+      --red: #ff747d;
+      --red-dark: #e05a63;
+      --red-light: #fff0f1;
+      --red-border: #ffd6d8;
+      --green: #10b981;
+      --green-bg: #ecfdf5;
+      --green-border: #a7f3d0;
+      --orange: #f59e0b;
+      --orange-bg: #fffbeb;
+      --text: #111827;
+      --text-secondary: #374151;
+      --text-muted: #6b7280;
+      --text-faint: #9ca3af;
+      --bg: #f9fafb;
+      --surface: #ffffff;
+      --border: #e5e7eb;
+      --border-subtle: #f3f4f6;
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --font-heading: 'Space Grotesk', system-ui, sans-serif;
+      --font-body: 'Noto Sans JP', system-ui, sans-serif;
     }
-    .logo-area img { height: 32px; object-fit: contain; }
-    header h1 { color: #111827; font-size: 15px; font-weight: 700; flex: 1; }
-    .stat { background: #f3f4f6; border-radius: 6px; padding: 4px 12px; font-size: 13px; color: #6b7280; }
-    .stat b { color: #111827; }
-    a.logout { color: #6b7280; font-size: 13px; text-decoration: none; padding: 6px 12px;
-               border: 1px solid #e5e7eb; border-radius: 6px; }
-    a.logout:hover { background: #f3f4f6; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 14px; }
 
-    main { max-width: 1400px; margin: 0 auto; padding: 24px; }
-    .panel { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 24px;
-             box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
-    .panel-header { padding: 14px 20px; border-bottom: 1px solid #f3f4f6;
-                    font-size: 14px; color: #374151; font-weight: 600;
-                    display: flex; align-items: center; gap: 10px; }
-    .panel-header .hint { font-size: 12px; font-weight: 400; color: #9ca3af; }
+    /* ─── ヘッダー ─── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 0 var(--border);
+    }
+    .header-logo { height: 28px; object-fit: contain; flex-shrink: 0; }
+    .header-divider { width: 1px; height: 20px; background: var(--border); }
+    .header-title {
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      flex: 1;
+    }
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-heading);
+    }
+    .stat-pill b { color: var(--text); font-weight: 600; }
+    .stat-pill .dot { width: 6px; height: 6px; border-radius: 50%; }
+    .dot-green { background: var(--green); }
+    .cost-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--red-light);
+      border: 1px solid var(--red-border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--red-dark);
+      font-family: var(--font-heading);
+      font-weight: 500;
+    }
+    .header-nav a {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+      font-family: var(--font-heading);
+    }
+    .header-nav a:hover { background: var(--bg); color: var(--text); }
+    .header-nav .logout { border: 1px solid var(--border); border-radius: 20px; }
 
+    /* ─── メインレイアウト ─── */
+    main { max-width: 1440px; margin: 0 auto; padding: 28px; display: flex; flex-direction: column; gap: 20px; }
+
+    /* ─── パネル ─── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-title {
+      font-family: var(--font-heading);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .panel-hint { font-size: 12px; color: var(--text-faint); font-weight: 400; }
+
+    /* ─── テーブル ─── */
     table { width: 100%; border-collapse: collapse; }
-    th { padding: 10px 16px; text-align: left; font-size: 11px; text-transform: uppercase;
-         color: #9ca3af; border-bottom: 1px solid #f3f4f6; font-weight: 600; }
-    td { padding: 12px 16px; border-bottom: 1px solid #f9fafb; font-size: 13px; vertical-align: middle; }
+    th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-faint);
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-heading);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    td {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: middle;
+    }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #fafafa; }
+    tbody tr {
+      transition: background 0.15s;
+      animation: rowFadeIn 0.4s var(--ease-out-expo) backwards;
+    }
+    tbody tr:nth-child(1) { animation-delay: 0.05s; }
+    tbody tr:nth-child(2) { animation-delay: 0.1s; }
+    tbody tr:nth-child(3) { animation-delay: 0.15s; }
+    tbody tr:nth-child(4) { animation-delay: 0.2s; }
+    tbody tr:nth-child(5) { animation-delay: 0.25s; }
+    tbody tr:hover { background: #fafafa; }
 
-    .badge { display: inline-block; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-    .badge-RUNNING { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+    @keyframes rowFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── バッジ ─── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--font-heading);
+    }
+    .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+    .badge-RUNNING { background: var(--green-bg); color: #059669; border: 1px solid var(--green-border); }
+    .badge-RUNNING::before { background: var(--green); }
     .badge-TERMINATED { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-    .badge-NOT_EXISTS { background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
-    .badge-STAGING { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .badge-TERMINATED::before { background: #dc2626; }
+    .badge-NOT_EXISTS { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+    .badge-NOT_EXISTS::before { background: var(--text-faint); }
+    .badge-STAGING { background: var(--orange-bg); color: #b45309; border: 1px solid #fde68a; }
+    .badge-STAGING::before { background: var(--orange); animation: pulse 1.2s ease-in-out infinite; }
 
-    /* OpenHands ステータスバッジ */
-    .oh-badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
-    .oh-ok { background: #dcfce7; color: #16a34a; }
-    .oh-ng { background: #f3f4f6; color: #9ca3af; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 
-    .btn { padding: 5px 12px; border: 1px solid; border-radius: 5px; cursor: pointer;
-           font-size: 12px; font-weight: 500; background: transparent; transition: background 0.15s; }
-    .btn-create { color: #ff747d; border-color: #ffb3b7; }
-    .btn-create:hover { background: #fff5f5; }
-    .btn-start { color: #16a34a; border-color: #86efac; }
-    .btn-start:hover { background: #f0fdf4; }
-    .btn-stop { color: #e05a63; border-color: #fca5a5; }
-    .btn-stop:hover { background: #fef2f2; }
-    .btn-delete { color: #6b7280; border-color: #e5e7eb; }
-    .btn-delete:hover { background: #f9fafb; }
-    .btn-chat { color: #ff747d; border-color: #ffb3b7; font-size: 11px; }
-    .btn-chat:hover { background: #fff5f5; }
+    .oh-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 600;
+      font-family: var(--font-heading);
+    }
+    .oh-ok { background: var(--green-bg); color: #059669; }
+    .oh-ng { background: var(--bg); color: var(--text-faint); border: 1px solid var(--border); }
 
-    .link-group { display: flex; flex-wrap: wrap; gap: 6px; }
-    .link-btn { display: inline-block; padding: 4px 10px; border-radius: 5px; font-size: 11px;
-                font-weight: 500; text-decoration: none; border: 1px solid; }
-    .link-oh { color: #ff747d; border-color: #ffb3b7; background: #fff5f5; }
+    /* ─── ボタン ─── */
+    .btn {
+      padding: 5px 12px;
+      border: 1px solid;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      background: transparent;
+      font-family: var(--font-heading);
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-create { color: var(--red); border-color: var(--red-border); }
+    .btn-create:hover { background: var(--red-light); }
+    .btn-start { color: #059669; border-color: var(--green-border); }
+    .btn-start:hover { background: var(--green-bg); }
+    .btn-stop { color: var(--red-dark); border-color: var(--red-border); }
+    .btn-stop:hover { background: var(--red-light); }
+    .btn-delete { color: var(--text-muted); border-color: var(--border); }
+    .btn-delete:hover { background: var(--bg); color: #dc2626; border-color: #fecaca; }
+    .btn-chat {
+      color: var(--red); border-color: var(--red-border); font-size: 11px;
+    }
+    .btn-chat:hover { background: var(--red-light); }
+
+    /* アクセスリンク */
+    .link-group { display: flex; flex-wrap: wrap; gap: 5px; }
+    .link-btn {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      text-decoration: none;
+      border: 1px solid;
+      font-family: var(--font-heading);
+      transition: background 0.15s;
+    }
+    .link-oh { color: var(--red); border-color: var(--red-border); background: var(--red-light); }
     .link-oh:hover { background: #ffe4e6; }
     .link-vs { color: #2563eb; border-color: #bfdbfe; background: #eff6ff; }
     .link-vs:hover { background: #dbeafe; }
 
-    .key-badge { font-family: monospace; font-size: 11px; color: #6b7280;
-                 background: #f3f4f6; padding: 2px 6px; border-radius: 3px; }
-
-    .add-form { padding: 16px 20px; display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
-    .form-group { display: flex; flex-direction: column; gap: 4px; }
-    .form-group label { font-size: 11px; color: #6b7280; font-weight: 500; }
-    .form-group input { padding: 7px 10px; background: #f9fafb; border: 1px solid #d1d5db;
-                        border-radius: 5px; color: #111827; font-size: 13px; outline: none; width: 200px; }
-    .form-group input:focus { border-color: #7c3aed; box-shadow: 0 0 0 2px #7c3aed20; }
-    .btn-add { padding: 7px 16px; background: #ff747d; border: none; border-radius: 50px;
-               color: white; font-size: 13px; cursor: pointer; font-weight: 600;
-               box-shadow: 0 2px 8px rgba(255,116,125,0.3); }
-    .btn-add:hover { background: #e05a63; }
-
-    details summary { cursor: pointer; font-size: 12px; color: #6b7280; list-style: none; }
+    /* APIキー設定 */
+    details summary { cursor: pointer; list-style: none; }
     details summary::-webkit-details-marker { display: none; }
-    details[open] summary { color: #ff747d; }
-    .settings-form { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .settings-form input, .settings-form select {
-      padding: 5px 8px; background: #f9fafb; border: 1px solid #d1d5db;
-      border-radius: 4px; color: #111827; font-size: 12px; outline: none;
+    .key-preview {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
     }
-    .settings-form input { width: 240px; font-family: monospace; }
-    .settings-form select { min-width: 140px; }
-    .btn-save { padding: 5px 10px; background: #ff747d; border: none; border-radius: 20px;
-                color: white; font-size: 12px; cursor: pointer; font-weight: 600; }
-    .btn-save:hover { background: #e05a63; }
-
-    .version-badge { font-family: monospace; font-size: 11px; color: #ff747d;
-                     background: #fff5f5; padding: 2px 6px; border-radius: 3px;
-                     border: 1px solid #ffb3b7; }
-
-    /* OpenHands チャットパネル */
-    .chat-panel { padding: 0; overflow: hidden; border-radius: 10px; }
-    .chat-panel iframe { width: 100%; height: 600px; border: none; display: block; }
-    .chat-placeholder { padding: 48px; text-align: center; color: #9ca3af; }
-    .chat-placeholder .hint { font-size: 13px; margin-top: 8px; }
-
-    .tab-bar { display: flex; gap: 4px; padding: 12px 16px; border-bottom: 1px solid #f3f4f6; }
-    .tab { padding: 6px 14px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 12px;
-           cursor: pointer; background: transparent; color: #6b7280; font-weight: 500; }
-    .tab.active { background: #7c3aed; color: white; border-color: #7c3aed; }
-    .tab:hover:not(.active) { background: #f9fafb; }
-
-    .oh-config-bar { padding: 12px 20px; background: #fff5f5; border-bottom: 1px solid #ffe4e6;
-                     display: flex; align-items: center; gap: 12px; font-size: 13px; flex-wrap: wrap; }
-    .oh-config-bar label { color: #e05a63; font-weight: 500; font-size: 12px; }
-    .oh-config-bar input, .oh-config-bar select {
-      padding: 4px 8px; border: 1px solid #ffb3b7; border-radius: 4px; font-size: 12px;
-      background: white; outline: none; color: #111827;
+    .key-preview code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      border-radius: 4px;
     }
-    .oh-config-bar input { width: 200px; font-family: monospace; }
-    .btn-apply { padding: 5px 14px; background: #ff747d; border: none; border-radius: 20px;
-                 color: white; font-size: 12px; cursor: pointer; font-weight: 600; }
-    .btn-apply:hover { background: #e05a63; }
+    details[open] .key-preview { color: var(--red); }
+    .toggle-icon { font-size: 10px; color: var(--text-faint); transition: transform 0.2s; }
+    details[open] .toggle-icon { transform: rotate(180deg); }
+
+    .settings-form {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 12px;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+    }
+    .settings-form input,
+    .settings-form select {
+      padding: 6px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+    }
+    .settings-form input { width: 260px; font-family: 'JetBrains Mono', monospace; }
+    .settings-form input:focus { border-color: var(--red); }
+    .settings-form select { min-width: 150px; }
+    .btn-save {
+      padding: 6px 14px;
+      background: var(--red);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 12px;
+      font-family: var(--font-heading);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-save:hover { background: var(--red-dark); }
+
+    /* 参加者追加フォーム */
+    .add-form {
+      padding: 16px 20px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--border-subtle);
+      background: var(--bg);
+    }
+    .form-field { display: flex; flex-direction: column; gap: 5px; }
+    .form-field label { font-size: 11px; color: var(--text-muted); font-weight: 500; font-family: var(--font-heading); }
+    .form-field input {
+      padding: 8px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      width: 200px;
+      transition: border 0.2s;
+    }
+    .form-field input:focus { border-color: var(--red); box-shadow: 0 0 0 2px rgba(255,116,125,0.1); }
+    .btn-add {
+      padding: 8px 20px;
+      background: var(--red);
+      border: none;
+      border-radius: 7px;
+      color: white;
+      font-size: 13px;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      box-shadow: 0 2px 8px rgba(255,116,125,0.25);
+    }
+    .btn-add:hover { background: var(--red-dark); transform: translateY(-1px); }
+
+    /* OpenHands設定バー */
+    .oh-config-bar {
+      padding: 14px 20px;
+      background: var(--red-light);
+      border-bottom: 1px solid var(--red-border);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .oh-config-bar label {
+      font-size: 12px;
+      color: var(--red-dark);
+      font-weight: 600;
+      font-family: var(--font-heading);
+      white-space: nowrap;
+    }
+    .oh-config-bar input,
+    .oh-config-bar select {
+      padding: 5px 10px;
+      border: 1px solid var(--red-border);
+      border-radius: 6px;
+      font-size: 12px;
+      background: var(--surface);
+      outline: none;
+      color: var(--text);
+      font-family: inherit;
+    }
+    .oh-config-bar input { width: 210px; font-family: 'JetBrains Mono', monospace; }
+    .btn-apply {
+      padding: 6px 16px;
+      background: var(--red);
+      border: none;
+      border-radius: 20px;
+      color: white;
+      font-size: 12px;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+      box-shadow: 0 2px 6px rgba(255,116,125,0.3);
+    }
+    .btn-apply:hover { background: var(--red-dark); }
+
+    /* チャットパネル */
+    .chat-iframe { width: 100%; height: 620px; border: none; display: block; }
+
+    /* 名前セル */
+    .participant-name { font-weight: 500; color: var(--text); }
+    .participant-email { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+
+    /* 空状態 */
+    .empty-state {
+      text-align: center;
+      padding: 56px 24px;
+      color: var(--text-faint);
+    }
+    .empty-state p { font-size: 14px; margin-top: 8px; }
   </style>
   <script>
-    // 30秒ごとに自動リフレッシュ
     setTimeout(() => location.reload(), 30000);
 
-    // OpenHandsチャットパネル切り替え
-    function openChat(pid, vmName) {
+    function openChat(vmName) {
       const panel = document.getElementById('chat-panel');
       const title = document.getElementById('chat-title');
       const frame = document.getElementById('chat-frame');
       panel.style.display = 'block';
-      title.textContent = '🤖 ' + vmName + ' — OpenHands';
+      title.textContent = vmName + ' — OpenHands チャット';
       frame.src = 'https://' + vmName + '.iseai.neuratools.ai/openhands/';
-      panel.scrollIntoView({ behavior: 'smooth' });
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   </script>
 </head>
 <body>
+
+<!-- ヘッダー -->
 <header>
-  <div class="logo-area"><img src="/static/iseai-logo.svg" alt="ISEAI"></div>
-  <h1>Clawthon 管理コンソール</h1>
-  <div class="stat">参加者 <b>{{ total }}</b></div>
-  <div class="stat">稼働中 <b style="color:#16a34a">{{ running }}</b></div>
-  <div class="stat" title="概算コスト（GCP+SPOT）">💴 <b>¥{{ cost_hourly }}/時</b> <span style="font-size:11px;color:#9ca3af">（¥{{ cost_event }}/2日間）</span></div>
-  <a href="/manual" style="color:#6b7280;font-size:13px;text-decoration:none;padding:6px 10px;border:1px solid #e5e7eb;border-radius:20px;">マニュアル</a>
-  <a class="logout" href="/logout" style="border-radius:20px;">ログアウト</a>
+  <img class="header-logo" src="/static/iseai-logo.svg" alt="ISEAI">
+  <div class="header-divider"></div>
+  <span class="header-title">Clawthon 管理コンソール</span>
+
+  <div class="stat-pill">
+    <span>参加者</span><b>{{ total }}</b>
+  </div>
+  <div class="stat-pill">
+    <span class="dot dot-green"></span>
+    <span>稼働中</span><b>{{ running }}</b>
+  </div>
+  <div class="cost-pill">
+    💴 <b>¥{{ cost_hourly }}/時</b>
+    <span style="opacity:.7;font-size:11px">（¥{{ cost_event }}/2日）</span>
+  </div>
+
+  <div class="header-nav" style="display:flex;gap:4px">
+    <a href="/manual">マニュアル</a>
+    <a href="/logout" class="logout">ログアウト</a>
+  </div>
 </header>
 
+<!-- メインコンテンツ -->
 <main>
-  <!-- 参加者一覧 -->
+
+  <!-- 参加者テーブル -->
   <div class="panel">
     <div class="panel-header">
-      参加者 &amp; VM ステータス
-      <span class="hint">30秒ごとに自動更新</span>
+      <span class="panel-title">参加者 &amp; VM ステータス</span>
+      <span class="panel-hint">30秒ごとに自動更新</span>
     </div>
     <table>
       <thead>
         <tr>
           <th>#</th>
-          <th>名前 / メール</th>
-          <th>VM状態</th>
+          <th>参加者</th>
+          <th>VM</th>
           <th>OpenHands</th>
           <th>アクセス</th>
           <th>APIキー / モデル</th>
@@ -173,12 +458,14 @@
       <tbody>
         {% for p in participants %}
         <tr>
-          <td style="color:#9ca3af;font-weight:500">{{ p.id }}</td>
+          <td style="color:var(--text-faint);font-family:var(--font-heading);font-weight:600;font-size:13px">{{ p.id }}</td>
           <td>
-            <div style="font-weight:600;color:#111827">{{ p.name }}</div>
-            <div style="color:#9ca3af;font-size:11px">{{ p.email }}</div>
+            <div class="participant-name">{{ p.name }}</div>
+            <div class="participant-email">{{ p.email }}</div>
           </td>
-          <td><span class="badge badge-{{ p.vm_status }}">{{ p.vm_status }}</span></td>
+          <td>
+            <span class="badge badge-{{ p.vm_status }}">{{ p.vm_status }}</span>
+          </td>
           <td>
             {% if p.vm_status == 'RUNNING' %}
               {% if p.oh_status %}
@@ -187,7 +474,7 @@
                 <span class="oh-badge oh-ng">未起動</span>
               {% endif %}
             {% else %}
-              <span style="color:#d1d5db;font-size:12px">—</span>
+              <span style="color:var(--border);font-size:12px">—</span>
             {% endif %}
           </td>
           <td>
@@ -195,26 +482,28 @@
             <div class="link-group">
               <a class="link-btn link-oh" href="{{ p.url_openhands }}" target="_blank">OpenHands</a>
               <a class="link-btn link-vs" href="{{ p.url_vscode }}" target="_blank">VSCode</a>
-              <button class="btn btn-chat" onclick="openChat('{{ p.id }}', 'p{{ p.id }}')">チャット</button>
+              <button class="btn btn-chat" onclick="openChat('p{{ p.id }}')">チャット</button>
             </div>
             {% else %}
-            <span style="color:#d1d5db;font-size:12px">—</span>
+            <span style="color:var(--border);font-size:12px">—</span>
             {% endif %}
           </td>
           <td>
             <details>
               <summary>
-                {% if p.litellm_key %}
-                <span class="key-badge">{{ p.litellm_key[:16] }}...</span>
-                {% elif p.api_key %}
-                <span class="key-badge">{{ p.api_key[:12] }}...</span>
-                {% else %}
-                <span style="color:#d97706;font-size:12px">⚠ 未設定</span>
-                {% endif %}
-                <span style="font-size:11px;color:#c4b5fd;margin-left:6px">▼ 編集</span>
+                <span class="key-preview">
+                  {% if p.litellm_key %}
+                    <code>{{ p.litellm_key[:16] }}…</code>
+                  {% elif p.api_key %}
+                    <code>{{ p.api_key[:12] }}…</code>
+                  {% else %}
+                    <span style="color:var(--orange);font-weight:600;font-size:12px">⚠ 未設定</span>
+                  {% endif %}
+                  <span class="toggle-icon">▼</span>
+                </span>
               </summary>
               <form method="post" action="/participants/{{ p.id }}/update" class="settings-form">
-                <input type="text" name="api_key" value="{{ p.api_key }}" placeholder="APIキー (例: sk-ant-...)">
+                <input type="text" name="api_key" value="{{ p.api_key }}" placeholder="sk-ant-api03-…">
                 <select name="model">
                   <option value="claude-sonnet-4-5" {% if p.model == 'claude-sonnet-4-5' %}selected{% endif %}>Claude Sonnet 4.5</option>
                   <option value="claude-sonnet" {% if p.model == 'claude-sonnet' %}selected{% endif %}>Claude Sonnet</option>
@@ -227,23 +516,23 @@
             </details>
           </td>
           <td>
-            <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
               {% if p.vm_status == 'NOT_EXISTS' %}
                 <form method="post" action="/vm/{{ p.id }}/create">
-                  <button class="btn btn-create">作成</button>
+                  <button class="btn btn-create">＋ 作成</button>
                 </form>
               {% elif p.vm_status == 'TERMINATED' %}
                 <form method="post" action="/vm/{{ p.id }}/start">
-                  <button class="btn btn-start">起動</button>
+                  <button class="btn btn-start">▶ 起動</button>
                 </form>
               {% elif p.vm_status == 'RUNNING' %}
                 <form method="post" action="/vm/{{ p.id }}/stop">
-                  <button class="btn btn-stop">停止</button>
+                  <button class="btn btn-stop">■ 停止</button>
                 </form>
               {% endif %}
               {% if p.vm_status != 'NOT_EXISTS' %}
                 <form method="post" action="/vm/{{ p.id }}/delete"
-                      onsubmit="return confirm('{{ p.name }} のVMを削除しますか？')">
+                      onsubmit="return confirm('{{ p.name }} のVMを完全に削除しますか？')">
                   <button class="btn btn-delete">削除</button>
                 </form>
               {% endif %}
@@ -251,40 +540,40 @@
           </td>
         </tr>
         {% endfor %}
+
         {% if not participants %}
-        <tr>
-          <td colspan="7" style="text-align:center;color:#9ca3af;padding:48px">
-            参加者が登録されていません。下のフォームから追加してください。
-          </td>
-        </tr>
+        <tr><td colspan="7">
+          <div class="empty-state">
+            <div style="font-size:32px">👥</div>
+            <p>参加者がまだ登録されていません</p>
+          </div>
+        </td></tr>
         {% endif %}
       </tbody>
     </table>
 
-    <!-- 参加者追加フォーム -->
-    <div style="border-top:1px solid #f3f4f6">
-      <form method="post" action="/participants/add" class="add-form">
-        <div class="form-group">
-          <label>名前</label>
-          <input type="text" name="name" placeholder="山田 太郎" required>
-        </div>
-        <div class="form-group">
-          <label>メールアドレス</label>
-          <input type="email" name="email" placeholder="taro@example.com" required>
-        </div>
-        <button type="submit" class="btn-add">＋ 参加者を追加</button>
-      </form>
-    </div>
+    <!-- 参加者追加 -->
+    <form method="post" action="/participants/add" class="add-form">
+      <div class="form-field">
+        <label>名前</label>
+        <input type="text" name="name" placeholder="山田 太郎" required>
+      </div>
+      <div class="form-field">
+        <label>メールアドレス</label>
+        <input type="email" name="email" placeholder="taro@example.com" required>
+      </div>
+      <button type="submit" class="btn-add">＋ 参加者を追加</button>
+    </form>
   </div>
 
-  <!-- OpenHands グローバル設定 -->
+  <!-- OpenHands 設定 -->
   <div class="panel">
     <div class="panel-header">
-      OpenHands 設定
-      <span class="hint">バージョンと接続先APIを管理します</span>
+      <span class="panel-title">OpenHands 設定</span>
+      <span class="panel-hint">バージョンとAPI接続先を管理</span>
     </div>
     <form method="post" action="/settings/openhands" class="oh-config-bar">
-      <label>OpenHandsバージョン</label>
+      <label>バージョン</label>
       <select name="oh_version">
         <option value="latest" {% if oh_version == 'latest' %}selected{% endif %}>latest（最新）</option>
         <option value="0.29" {% if oh_version == '0.29' %}selected{% endif %}>0.29</option>
@@ -293,19 +582,22 @@
       </select>
       <label>LiteLLM URL</label>
       <input type="text" name="litellm_url" value="{{ litellm_url }}" placeholder="http://localhost:4000">
-      <label>LiteLLM マスターキー</label>
-      <input type="text" name="litellm_master_key" value="{{ litellm_master_key }}" placeholder="sk-...">
-      <button type="submit" class="btn-apply">設定を保存 &amp; VM再起動</button>
+      <label>マスターキー</label>
+      <input type="text" name="litellm_master_key" value="{{ litellm_master_key }}" placeholder="sk-…">
+      <button type="submit" class="btn-apply">保存 &amp; 再起動</button>
     </form>
   </div>
 
-  <!-- OpenHands チャットパネル -->
+  <!-- チャットパネル -->
   <div class="panel" id="chat-panel" style="display:none">
-    <div class="panel-header" id="chat-title">OpenHands チャット</div>
-    <div class="chat-panel">
-      <iframe id="chat-frame" src="" allow="camera; microphone" allowfullscreen></iframe>
+    <div class="panel-header">
+      <span class="panel-title" id="chat-title">OpenHands チャット</span>
+      <button onclick="document.getElementById('chat-panel').style.display='none'"
+              style="font-size:12px;color:var(--text-muted);background:none;border:none;cursor:pointer">✕ 閉じる</button>
     </div>
+    <iframe id="chat-frame" class="chat-iframe" src="" allow="camera; microphone" allowfullscreen></iframe>
   </div>
+
 </main>
 </body>
 </html>

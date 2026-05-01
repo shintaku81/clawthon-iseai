@@ -4,36 +4,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{VM_NAME}} — Clawthon ISEAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --red: #ff747d;
+      --red-dark: #e05a63;
+      --red-light: #fff0f1;
+      --red-border: #ffd6d8;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --border: #e5e7eb;
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: #ffffff;
-      color: #1f2937;
-      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans JP', system-ui, sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
+
     header {
-      background: #ffffff;
-      border-bottom: 1px solid #ffe4e6;
-      padding: 16px 32px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 60px;
       display: flex;
       align-items: center;
       gap: 16px;
-      box-shadow: 0 1px 6px rgba(255,116,125,0.08);
     }
-    .header-logo { height: 28px; object-fit: contain; }
-    .vm-name {
-      font-size: 14px;
+    .header-logo { height: 26px; object-fit: contain; }
+    .header-div { width: 1px; height: 18px; background: var(--border); }
+    .header-vm {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
       font-weight: 600;
-      color: #374151;
+      color: var(--text-muted);
     }
-    .vm-sub {
-      font-size: 12px;
-      color: #9ca3af;
-      margin-left: auto;
-    }
+    .header-vm span { color: var(--red); }
 
     main {
       flex: 1;
@@ -41,119 +54,151 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 48px 24px;
+      padding: 60px 24px;
+    }
+
+    .eyebrow {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 16px;
     }
     h1 {
-      font-size: 28px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
       font-weight: 700;
-      color: #111827;
-      margin-bottom: 8px;
+      color: var(--text);
+      margin-bottom: 10px;
       text-align: center;
     }
     .subtitle {
       font-size: 15px;
-      color: #6b7280;
-      margin-bottom: 48px;
+      color: var(--text-muted);
+      margin-bottom: 52px;
       text-align: center;
+      line-height: 1.7;
     }
 
     .cards {
       display: flex;
-      gap: 24px;
+      gap: 20px;
       flex-wrap: wrap;
       justify-content: center;
-      max-width: 760px;
     }
+
     .card {
-      background: #ffffff;
-      border: 2px solid #e5e7eb;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
       border-radius: 16px;
       padding: 36px 32px;
-      width: 320px;
-      text-align: center;
+      width: 300px;
+      text-align: left;
       text-decoration: none;
       color: inherit;
-      transition: all 0.2s;
-      cursor: pointer;
       display: block;
+      transition: border-color 0.2s var(--ease-out-expo),
+                  box-shadow 0.25s var(--ease-out-expo),
+                  transform 0.2s var(--ease-out-expo);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: transparent;
+      transition: background 0.2s;
     }
     .card:hover {
-      border-color: #ff747d;
-      box-shadow: 0 8px 32px rgba(255,116,125,0.15);
-      transform: translateY(-2px);
+      border-color: var(--red-border);
+      box-shadow: 0 12px 40px rgba(255,116,125,0.12);
+      transform: translateY(-3px);
     }
+    .card:hover::before { background: var(--red); }
+
     .card-icon {
-      font-size: 48px;
-      margin-bottom: 16px;
+      font-size: 36px;
+      margin-bottom: 18px;
       display: block;
     }
     .card-title {
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 20px;
       font-weight: 700;
-      color: #111827;
+      color: var(--text);
       margin-bottom: 8px;
     }
     .card-desc {
       font-size: 13px;
-      color: #6b7280;
-      line-height: 1.6;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 20px;
     }
-    .card-badge {
-      display: inline-block;
-      margin-top: 14px;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 11px;
+    .card-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
       font-weight: 600;
+      color: var(--red);
     }
-    .badge-oh { background: #fff5f5; color: #ff747d; border: 1px solid #ffb3b7; }
-    .badge-vs { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+    .card-cta .arrow { transition: transform 0.2s var(--ease-out-expo); }
+    .card:hover .arrow { transform: translateX(4px); }
 
     footer {
       text-align: center;
       padding: 20px;
-      font-size: 12px;
+      font-size: 11px;
       color: #d1d5db;
-      border-top: 1px solid #f3f4f6;
+      border-top: 1px solid var(--border);
+      font-family: 'Space Grotesk', sans-serif;
     }
   </style>
 </head>
 <body>
   <header>
     <img class="header-logo" src="https://iseai.jp/ISE-Ai2.svg" alt="ISEAI">
-    <span class="vm-name">Clawthon {{VM_NAME}}</span>
-    <span class="vm-sub">AI開発環境</span>
+    <div class="header-div"></div>
+    <span class="header-vm">Clawthon <span>{{VM_NAME}}</span></span>
   </header>
 
   <main>
-    <h1>ようこそ、Clawthon へ！</h1>
-    <p class="subtitle">使用するツールを選択してください</p>
+    <div class="eyebrow">AI Development Environment</div>
+    <h1>ようこそ、Clawthon へ</h1>
+    <p class="subtitle">使いたいツールを選んでください</p>
 
     <div class="cards">
-      <!-- OpenHands -->
-      <a class="card" href="/openhands/" target="_self">
+      <a class="card" href="/openhands/">
         <span class="card-icon">🤖</span>
         <div class="card-title">OpenHands</div>
         <div class="card-desc">
-          AIエージェントと協力してコードを開発します。<br>
-          自然言語でタスクを指示できます。
+          AIエージェントと協力してコードを書きます。<br>
+          自然言語でタスクを指示するだけ。
         </div>
-        <span class="card-badge badge-oh">AI エージェント</span>
+        <span class="card-cta">
+          起動する <span class="arrow">→</span>
+        </span>
       </a>
 
-      <!-- VSCode / code-server -->
-      <a class="card" href="/code/" target="_self">
+      <a class="card" href="/code/">
         <span class="card-icon">💻</span>
         <div class="card-title">VSCode</div>
         <div class="card-desc">
-          ブラウザで使えるVisual Studio Code。<br>
-          コードの編集・実行・デバッグができます。
+          ブラウザで動くVisual Studio Code。<br>
+          コード編集・ターミナル・デバッグが使えます。
         </div>
-        <span class="card-badge badge-vs">コードエディタ</span>
+        <span class="card-cta">
+          起動する <span class="arrow">→</span>
+        </span>
       </a>
     </div>
   </main>
 
-  <footer>Clawthon ISEAI — ハッカソン参加者向け AI 開発環境</footer>
+  <footer>Clawthon ISEAI — Powered by OpenHands &amp; code-server</footer>
 </body>
 </html>

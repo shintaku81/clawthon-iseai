@@ -4,86 +4,214 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Clawthon ISEAI — 管理コンソール</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --red: #ff747d;
+      --red-dark: #e05a63;
+      --red-light: #fff0f1;
+      --red-border: #ffd6d8;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --border: #e5e7eb;
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: linear-gradient(135deg, #fff5f5 0%, #ffffff 50%, #fff0f0 100%);
-      color: #1e293b;
-      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans JP', system-ui, sans-serif;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    /* ─── 左パネル（ブランド） ─── */
+    .brand-panel {
+      background: var(--text);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .brand-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 70%, rgba(255,116,125,0.25) 0%, transparent 60%),
+                  radial-gradient(circle at 80% 20%, rgba(255,116,125,0.1) 0%, transparent 50%);
+    }
+    .brand-top { position: relative; z-index: 1; }
+    .brand-logo { height: 36px; filter: brightness(0) invert(1); }
+    .brand-main {
+      position: relative; z-index: 1;
+      margin-top: auto; margin-bottom: auto;
+      padding: 40px 0;
+    }
+    .brand-eyebrow {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 16px;
+    }
+    .brand-h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+    .brand-h1 span { color: var(--red); }
+    .brand-desc {
+      font-size: 14px;
+      color: #9ca3af;
+      line-height: 1.8;
+      max-width: 320px;
+    }
+    .brand-bottom {
+      position: relative; z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); }
+    .brand-dot.dim { background: #374151; }
+    .brand-version { font-size: 12px; color: #4b5563; font-family: 'Space Grotesk', sans-serif; }
+
+    /* ─── 右パネル（フォーム） ─── */
+    .form-panel {
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
+      padding: 48px 40px;
     }
-    .wrapper { width: 100%; max-width: 400px; padding: 24px; }
-    .logo-area { text-align: center; margin-bottom: 32px; }
-    .logo-area img { height: 40px; object-fit: contain; }
-    .card {
-      background: #ffffff;
-      border: 1px solid #ffe4e6;
-      border-radius: 16px;
-      padding: 40px 36px;
-      box-shadow: 0 8px 32px rgba(255,116,125,0.12);
+    .form-inner { width: 100%; max-width: 360px; }
+    .form-header { margin-bottom: 36px; }
+    .form-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
     }
-    h1 { font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 4px; text-align: center; }
-    .sub { color: #6b7280; font-size: 13px; margin-bottom: 28px; text-align: center; }
-    .form-group { margin-bottom: 16px; }
-    label { display: block; font-size: 13px; color: #374151; font-weight: 500; margin-bottom: 6px; }
-    input[type=email], input[type=password] {
-      width: 100%; padding: 11px 14px;
-      background: #fafafa;
-      border: 1.5px solid #e5e7eb;
+    .form-sub { font-size: 14px; color: var(--text-muted); }
+
+    .field { margin-bottom: 18px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+    }
+    .field input {
+      width: 100%;
+      padding: 11px 16px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
       border-radius: 8px;
-      color: #111827;
-      font-size: 15px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
       outline: none;
-      transition: border 0.2s, box-shadow 0.2s;
+      transition: border 0.2s var(--ease-out-expo), box-shadow 0.2s var(--ease-out-expo);
     }
-    input[type=email]:focus, input[type=password]:focus {
-      border-color: #ff747d;
-      box-shadow: 0 0 0 3px rgba(255,116,125,0.15);
+    .field input:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(255,116,125,0.12);
     }
-    button {
-      width: 100%; margin-top: 8px; padding: 13px;
-      background: #ff747d;
-      border: none; border-radius: 50px;
-      color: white; font-size: 15px; font-weight: 700;
-      cursor: pointer; transition: background 0.2s, transform 0.15s;
-      box-shadow: 0 4px 16px rgba(255,116,125,0.35);
+
+    .submit-btn {
+      width: 100%;
+      margin-top: 8px;
+      padding: 13px;
+      background: var(--red);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s var(--ease-out-expo), box-shadow 0.2s;
+      box-shadow: 0 4px 16px rgba(255,116,125,0.3);
     }
-    button:hover { background: #e05a63; transform: translateY(-1px); }
-    button:active { transform: translateY(0); }
-    .error {
-      color: #dc2626; font-size: 13px; margin-top: 14px; text-align: center;
-      background: #fef2f2; border: 1px solid #fecaca;
-      border-radius: 8px; padding: 10px;
+    .submit-btn:hover {
+      background: var(--red-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(255,116,125,0.4);
     }
-    .divider { border: none; border-top: 1px solid #f3f4f6; margin: 24px 0; }
-    .footer-text { text-align: center; font-size: 12px; color: #9ca3af; }
+    .submit-btn:active { transform: translateY(0); }
+
+    .error-msg {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-left: 3px solid var(--red);
+      border-radius: 6px;
+      font-size: 13px;
+      color: #dc2626;
+    }
+
+    /* モバイル対応 */
+    @media (max-width: 768px) {
+      body { grid-template-columns: 1fr; }
+      .brand-panel { display: none; }
+      .form-panel { padding: 40px 24px; }
+      .form-inner { max-width: 100%; }
+    }
   </style>
 </head>
 <body>
-  <div class="wrapper">
-    <div class="logo-area">
-      <img src="/static/iseai-logo.svg" alt="ISEAI">
+  <!-- 左：ブランドパネル -->
+  <div class="brand-panel">
+    <div class="brand-top">
+      <img class="brand-logo" src="/static/iseai-logo.svg" alt="ISEAI">
     </div>
-    <div class="card">
-      <h1>管理コンソール</h1>
-      <p class="sub">Clawthon ISEAI — 運営者専用</p>
+    <div class="brand-main">
+      <div class="brand-eyebrow">Admin Console</div>
+      <h1 class="brand-h1">Clawthon<br><span>ISEAI</span> 運営<br>ダッシュボード</h1>
+      <p class="brand-desc">参加者VMの作成・管理、OpenHandsの設定、コスト監視をここから行います。</p>
+    </div>
+    <div class="brand-bottom">
+      <span class="brand-dot"></span>
+      <span class="brand-dot dim"></span>
+      <span class="brand-dot dim"></span>
+      <span class="brand-version" style="margin-left:4px">Clawthon v2.0</span>
+    </div>
+  </div>
+
+  <!-- 右：ログインフォーム -->
+  <div class="form-panel">
+    <div class="form-inner">
+      <div class="form-header">
+        <h2 class="form-title">ログイン</h2>
+        <p class="form-sub">運営者アカウントでサインインしてください</p>
+      </div>
       <form method="post" action="/login">
-        <div class="form-group">
+        <div class="field">
           <label>メールアドレス</label>
           <input type="email" name="email" autofocus placeholder="admin@example.com" required>
         </div>
-        <div class="form-group">
+        <div class="field">
           <label>パスワード</label>
-          <input type="password" name="password" placeholder="管理パスワード" required>
+          <input type="password" name="password" placeholder="••••••••••" required>
         </div>
-        <button type="submit">ログイン</button>
+        <button type="submit" class="submit-btn">サインイン →</button>
       </form>
-      {% if error %}<p class="error">{{ error }}</p>{% endif %}
-      <hr class="divider">
-      <p class="footer-text">運営者のみアクセス可能です</p>
+      {% if error %}<p class="error-msg">{{ error }}</p>{% endif %}
     </div>
   </div>
 </body>
