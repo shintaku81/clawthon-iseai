@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clawthon 管理コンソール</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0f; color: #e0e0e0; font-family: system-ui, sans-serif; }
+    header {
+      background: #13131a; border-bottom: 1px solid #2a2a3a;
+      padding: 0 24px; height: 52px; display: flex; align-items: center; gap: 16px;
+    }
+    header h1 { color: #a78bfa; font-size: 18px; font-weight: 700; flex: 1; }
+    .stat { background: #1e1e2e; border-radius: 6px; padding: 4px 12px; font-size: 13px; color: #9ca3af; }
+    .stat b { color: #e0e0e0; }
+    a.logout { color: #6b7280; font-size: 13px; text-decoration: none; }
+
+    main { max-width: 1300px; margin: 0 auto; padding: 24px; }
+    .panel { background: #13131a; border: 1px solid #2a2a3a; border-radius: 10px; margin-bottom: 24px; }
+    .panel-header { padding: 14px 20px; border-bottom: 1px solid #2a2a3a; font-size: 14px; color: #9ca3af; font-weight: 600; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 10px 16px; text-align: left; font-size: 11px; text-transform: uppercase;
+         color: #6b7280; border-bottom: 1px solid #2a2a3a; }
+    td { padding: 12px 16px; border-bottom: 1px solid #1a1a2a; font-size: 13px; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #16161f; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .badge-RUNNING { background: #052e16; color: #4ade80; border: 1px solid #166534; }
+    .badge-TERMINATED { background: #2d0a0a; color: #f87171; border: 1px solid #7f1d1d; }
+    .badge-NOT_EXISTS { background: #1a1a2a; color: #6b7280; border: 1px solid #374151; }
+    .badge-STAGING { background: #1c1a07; color: #fbbf24; border: 1px solid #78350f; }
+
+    .btn { padding: 5px 12px; border: 1px solid; border-radius: 5px; cursor: pointer;
+           font-size: 12px; font-weight: 500; background: transparent; }
+    .btn-create { color: #a78bfa; border-color: #7c3aed; }
+    .btn-create:hover { background: #7c3aed20; }
+    .btn-start { color: #4ade80; border-color: #16a34a; }
+    .btn-start:hover { background: #16a34a20; }
+    .btn-stop { color: #f87171; border-color: #dc2626; }
+    .btn-stop:hover { background: #dc262620; }
+    .btn-delete { color: #6b7280; border-color: #374151; }
+    .btn-delete:hover { background: #37415120; }
+
+    .link-group a { color: #a78bfa; font-size: 12px; text-decoration: none; margin-right: 10px; }
+    .link-group a:hover { text-decoration: underline; }
+
+    .key-badge { font-family: monospace; font-size: 11px; color: #6b7280;
+                 background: #1a1a2a; padding: 2px 6px; border-radius: 3px; }
+
+    .add-form { padding: 16px 20px; display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 11px; color: #6b7280; }
+    .form-group input { padding: 7px 10px; background: #1e1e2e; border: 1px solid #3a3a4a;
+                        border-radius: 5px; color: #e0e0e0; font-size: 13px; outline: none; width: 200px; }
+    .form-group input:focus { border-color: #7c3aed; }
+    .btn-add { padding: 7px 16px; background: #7c3aed; border: none; border-radius: 5px;
+               color: white; font-size: 13px; cursor: pointer; font-weight: 600; }
+    .btn-add:hover { background: #6d28d9; }
+
+    details summary { cursor: pointer; font-size: 12px; color: #6b7280; }
+    details[open] summary { color: #a78bfa; }
+    .settings-form { margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .settings-form input, .settings-form select {
+      padding: 4px 8px; background: #1e1e2e; border: 1px solid #3a3a4a;
+      border-radius: 4px; color: #e0e0e0; font-size: 12px; outline: none;
+    }
+    .settings-form input { width: 220px; font-family: monospace; }
+    .btn-save { padding: 4px 10px; background: #374151; border: none; border-radius: 4px;
+                color: #e0e0e0; font-size: 12px; cursor: pointer; }
+  </style>
+  <script>
+    // 30秒ごとに自動リフレッシュ
+    setTimeout(() => location.reload(), 30000);
+  </script>
+</head>
+<body>
+<header>
+  <h1>Clawthon ISEAI 管理コンソール</h1>
+  <div class="stat">参加者 <b>{{ total }}</b></div>
+  <div class="stat">稼働中 <b style="color:#4ade80">{{ running }}</b></div>
+  <a class="logout" href="/logout">ログアウト</a>
+</header>
+
+<main>
+  <!-- 参加者一覧 -->
+  <div class="panel">
+    <div class="panel-header">参加者 & VM ステータス</div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>名前 / メール</th>
+          <th>VM状態</th>
+          <th>アクセスURL</th>
+          <th>APIキー設定</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in participants %}
+        <tr>
+          <td style="color:#6b7280">{{ p.id }}</td>
+          <td>
+            <div style="font-weight:500">{{ p.name }}</div>
+            <div style="color:#6b7280;font-size:11px">{{ p.email }}</div>
+          </td>
+          <td><span class="badge badge-{{ p.vm_status }}">{{ p.vm_status }}</span></td>
+          <td>
+            {% if p.vm_status == 'RUNNING' %}
+            <div class="link-group">
+              <a href="{{ p.url_openhands }}" target="_blank">OpenHands</a>
+              <a href="{{ p.url_vscode }}" target="_blank">VSCode</a>
+            </div>
+            {% else %}
+            <span style="color:#374151;font-size:12px">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <details>
+              <summary>
+                {% if p.litellm_key %}
+                <span class="key-badge">{{ p.litellm_key[:16] }}...</span>
+                {% else %}未設定{% endif %}
+              </summary>
+              <form method="post" action="/participants/{{ p.id }}/update" class="settings-form">
+                <input type="text" name="api_key" value="{{ p.api_key }}" placeholder="APIキー (OpenRouter/Anthropic)">
+                <select name="model">
+                  <option value="claude-sonnet" {% if p.model == 'claude-sonnet' %}selected{% endif %}>Claude Sonnet</option>
+                  <option value="claude-haiku" {% if p.model == 'claude-haiku' %}selected{% endif %}>Claude Haiku</option>
+                  <option value="gemini-flash" {% if p.model == 'gemini-flash' %}selected{% endif %}>Gemini Flash</option>
+                </select>
+                <button type="submit" class="btn-save">保存</button>
+              </form>
+            </details>
+          </td>
+          <td>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              {% if p.vm_status == 'NOT_EXISTS' %}
+                <form method="post" action="/vm/{{ p.id }}/create">
+                  <button class="btn btn-create">作成</button>
+                </form>
+              {% elif p.vm_status == 'TERMINATED' %}
+                <form method="post" action="/vm/{{ p.id }}/start">
+                  <button class="btn btn-start">起動</button>
+                </form>
+              {% elif p.vm_status == 'RUNNING' %}
+                <form method="post" action="/vm/{{ p.id }}/stop">
+                  <button class="btn btn-stop">停止</button>
+                </form>
+              {% endif %}
+              {% if p.vm_status != 'NOT_EXISTS' %}
+                <form method="post" action="/vm/{{ p.id }}/delete"
+                      onsubmit="return confirm('{{ p.name }} のVMを削除しますか？')">
+                  <button class="btn btn-delete">削除</button>
+                </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not participants %}
+        <tr>
+          <td colspan="6" style="text-align:center;color:#374151;padding:32px">
+            参加者が登録されていません。下のフォームから追加してください。
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    <!-- 参加者追加フォーム -->
+    <div style="border-top:1px solid #2a2a3a">
+      <form method="post" action="/participants/add" class="add-form">
+        <div class="form-group">
+          <label>名前</label>
+          <input type="text" name="name" placeholder="山田 太郎" required>
+        </div>
+        <div class="form-group">
+          <label>メールアドレス</label>
+          <input type="email" name="email" placeholder="taro@example.com" required>
+        </div>
+        <button type="submit" class="btn-add">+ 参加者を追加</button>
+      </form>
+    </div>
+  </div>
+</main>
+</body>
+</html>

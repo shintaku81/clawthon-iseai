@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clawthon 管理コンソール</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0f; color: #e0e0e0; font-family: system-ui, sans-serif;
+           display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .card { background: #13131a; border: 1px solid #2a2a3a; border-radius: 12px;
+            padding: 40px; width: 360px; }
+    h1 { font-size: 22px; color: #a78bfa; margin-bottom: 6px; }
+    .sub { color: #6b7280; font-size: 13px; margin-bottom: 28px; }
+    label { display: block; font-size: 13px; color: #9ca3af; margin-bottom: 6px; }
+    input[type=password] {
+      width: 100%; padding: 10px 14px; background: #1e1e2e;
+      border: 1px solid #3a3a4a; border-radius: 6px; color: #e0e0e0;
+      font-size: 15px; outline: none; transition: border 0.2s;
+    }
+    input[type=password]:focus { border-color: #7c3aed; }
+    button {
+      width: 100%; margin-top: 20px; padding: 12px;
+      background: #7c3aed; border: none; border-radius: 6px;
+      color: white; font-size: 15px; font-weight: 600; cursor: pointer;
+    }
+    button:hover { background: #6d28d9; }
+    .error { color: #f87171; font-size: 13px; margin-top: 12px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Clawthon ISEAI</h1>
+    <p class="sub">管理コンソール — 運営者専用</p>
+    <form method="post" action="/login">
+      <label>パスワード</label>
+      <input type="password" name="password" autofocus placeholder="管理パスワードを入力">
+      <button type="submit">ログイン</button>
+    </form>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  </div>
+</body>
+</html>

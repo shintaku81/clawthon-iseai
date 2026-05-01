@@ -1,0 +1,21 @@
+#cloud-config
+package_update: true
+package_upgrade: false
+
+packages:
+  - docker.io
+  - docker-compose
+  - nginx
+  - certbot
+  - python3-certbot-nginx
+  - python3-pip
+  - git
+  - jq
+
+runcmd:
+  - systemctl enable docker
+  - systemctl start docker
+  - usermod -aG docker ubuntu
+  - pip3 install litellm[proxy] fastapi uvicorn jinja2 aiofiles httpx
+  - mkdir -p /opt/clawthon/console /opt/clawthon/litellm /opt/clawthon/infra
+  - echo "Management VM ready" > /tmp/init-done.txt
