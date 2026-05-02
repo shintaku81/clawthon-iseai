@@ -7,3 +7,5 @@ participants.json
 participants-keys.csv
 *.log
 .pytest_cache/
+CREDENTIALS.md
+.env
