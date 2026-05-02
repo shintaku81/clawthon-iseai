@@ -23,18 +23,19 @@ runcmd:
       -v /opt/clawthon/workspace:/home/coder/project \
       codercom/code-server:latest
 
-  # OpenHands 起動
+  # OpenHands 起動（APIキー未設定でも起動 → UI内で後から設定可）
   - |
+    EXTRA_ENV=""
+    if [ "LITELLM_KEY_PLACEHOLDER" != "" ] && [ "LITELLM_KEY_PLACEHOLDER" != "LITELLM_KEY_PLACEHOLDER" ]; then
+      EXTRA_ENV="-e LLM_API_KEY=LITELLM_KEY_PLACEHOLDER -e LLM_BASE_URL=http://MANAGEMENT_IP_PLACEHOLDER:4000 -e LLM_MODEL=MODEL_PLACEHOLDER"
+    fi
     docker run -d --name openhands --restart=unless-stopped \
       -p 3000:3000 \
-      -e LLM_API_KEY=LITELLM_KEY_PLACEHOLDER \
-      -e LLM_BASE_URL=http://MANAGEMENT_IP_PLACEHOLDER:4000 \
-      -e LLM_MODEL=MODEL_PLACEHOLDER \
-      -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:OH_VERSION_PLACEHOLDER-nikolaik \
+      $EXTRA_ENV \
       -v /var/run/docker.sock:/var/run/docker.sock \
       -v /opt/clawthon/workspace:/opt/workspace \
       -v ~/.openhands:/root/.openhands \
-      docker.all-hands.dev/all-hands-ai/openhands:OH_VERSION_PLACEHOLDER
+      ghcr.io/all-hands-ai/openhands:OH_VERSION_PLACEHOLDER
 
   # nginx 設定（server_name込み）
   - |
