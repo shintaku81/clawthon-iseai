@@ -213,6 +213,44 @@
     .btn-delete:hover { background: var(--bg); color: #dc2626; border-color: #fecaca; }
     .btn-mail { color: #0369a1; border-color: #bae6fd; }
     .btn-mail:hover { background: #f0f9ff; }
+
+    /* ── テーブルコントロール ── */
+    .table-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .table-controls input[type="search"] {
+      padding: 6px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: 'Noto Sans JP', sans-serif;
+      width: 200px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .table-controls input[type="search"]:focus { border-color: var(--red); }
+    .table-controls select {
+      padding: 6px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 12px;
+      font-family: var(--font-heading);
+      background: white;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .table-controls select:focus { border-color: var(--red); }
+    .sortable { cursor: pointer; user-select: none; }
+    .sortable:hover { background: #f3f4f6; }
+    .sort-icon { font-size: 10px; color: var(--text-faint); margin-left: 2px; }
+    th.sort-asc .sort-icon::after { content: '↑'; color: var(--red); }
+    th.sort-desc .sort-icon::after { content: '↓'; color: var(--red); }
+    th.sort-asc .sort-icon, th.sort-desc .sort-icon { font-size: 0; }
+    tr.hidden { display: none; }
     .btn-chat {
       color: var(--red); border-color: var(--red-border); font-size: 11px;
     }
@@ -534,6 +572,65 @@
       }
     }
 
+    // ── テーブル フィルター & ソート ──────────────────────
+    const TableController = (() => {
+      let sortCol = -1, sortAsc = true;
+
+      function rows() {
+        return Array.from(document.querySelectorAll('#participants-tbody tr'));
+      }
+
+      function updateCount(visible, total) {
+        const el = document.getElementById('filter-count');
+        if (!el) return;
+        el.textContent = visible < total ? `${visible} / ${total} 件` : `${total} 件`;
+      }
+
+      function filter() {
+        const q = (document.getElementById('participant-search')?.value || '').toLowerCase();
+        const st = document.getElementById('status-filter')?.value || '';
+        const oh = document.getElementById('oh-filter')?.value || '';
+        let visible = 0;
+        const all = rows();
+        all.forEach(tr => {
+          const matchQ = !q || tr.dataset.name?.includes(q) || tr.dataset.email?.includes(q) || tr.dataset.id?.includes(q);
+          const matchSt = !st || tr.dataset.status === st;
+          const matchOh = !oh || tr.dataset.oh === oh;
+          const show = matchQ && matchSt && matchOh;
+          tr.classList.toggle('hidden', !show);
+          if (show) visible++;
+        });
+        updateCount(visible, all.length);
+      }
+
+      function sort(col) {
+        const tbody = document.getElementById('participants-tbody');
+        if (!tbody) return;
+        if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = true; }
+
+        // ヘッダーのアイコン更新
+        document.querySelectorAll('#participants-table th.sortable').forEach((th, i) => {
+          th.classList.toggle('sort-asc', i === col && sortAsc);
+          th.classList.toggle('sort-desc', i === col && !sortAsc);
+        });
+
+        const sorted = rows().sort((a, b) => {
+          const av = a.cells[col]?.textContent.trim() || '';
+          const bv = b.cells[col]?.textContent.trim() || '';
+          return sortAsc ? av.localeCompare(bv, 'ja') : bv.localeCompare(av, 'ja');
+        });
+        sorted.forEach(tr => tbody.appendChild(tr));
+      }
+
+      return { filter, sort };
+    })();
+
+    function filterTable() { TableController.filter(); }
+    function sortTable(col) { TableController.sort(col); }
+
+    // 初期カウント表示
+    document.addEventListener('DOMContentLoaded', () => TableController.filter());
+
     async function sendWelcomeMail(pid, email) {
       if (!confirm(`${email} に開発環境URLとアクセス情報を送信しますか？`)) return;
       const btn = event.target;
@@ -598,23 +695,37 @@
   <div class="panel">
     <div class="panel-header">
       <span class="panel-title">参加者 &amp; VM ステータス</span>
-      <span class="panel-hint">30秒ごとに自動更新</span>
+      <div class="table-controls">
+        <input type="search" id="participant-search" placeholder="名前・メール・IDで検索…" oninput="filterTable()">
+        <select id="status-filter" onchange="filterTable()">
+          <option value="">すべてのVM状態</option>
+          <option value="RUNNING">RUNNING</option>
+          <option value="TERMINATED">TERMINATED</option>
+          <option value="NOT_EXISTS">NOT_EXISTS</option>
+        </select>
+        <select id="oh-filter" onchange="filterTable()">
+          <option value="">OpenHands 全て</option>
+          <option value="ok">稼働中</option>
+          <option value="ng">未起動</option>
+        </select>
+        <span class="panel-hint" id="filter-count"></span>
+      </div>
     </div>
-    <table>
+    <table id="participants-table">
       <thead>
         <tr>
-          <th>#</th>
-          <th>参加者</th>
-          <th>VM</th>
-          <th>OpenHands</th>
+          <th class="sortable" data-col="0" onclick="sortTable(0)"># <span class="sort-icon">↕</span></th>
+          <th class="sortable" data-col="1" onclick="sortTable(1)">参加者 <span class="sort-icon">↕</span></th>
+          <th class="sortable" data-col="2" onclick="sortTable(2)">VM <span class="sort-icon">↕</span></th>
+          <th class="sortable" data-col="3" onclick="sortTable(3)">OpenHands <span class="sort-icon">↕</span></th>
           <th>アクセス</th>
           <th>APIキー / モデル</th>
           <th>操作</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="participants-tbody">
         {% for p in participants %}
-        <tr>
+        <tr data-id="{{ p.id }}" data-name="{{ p.name|lower }}" data-email="{{ p.email|lower }}" data-status="{{ p.vm_status }}" data-oh="{{ 'ok' if p.oh_status else 'ng' }}">
           <td style="color:var(--text-faint);font-family:var(--font-heading);font-weight:600;font-size:13px">{{ p.id }}</td>
           <td>
             <div class="participant-name">{{ p.name }}</div>
