@@ -4,252 +4,933 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>運営マニュアル — Clawthon ISEAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #f5f7fa; color: #1f2937; font-family: system-ui, sans-serif; }
-    header {
-      background: #ffffff; border-bottom: 1px solid #e5e7eb;
-      padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    :root {
+      --red: #ff747d;
+      --red-dark: #e05a63;
+      --red-light: #fff0f1;
+      --red-border: #ffd6d8;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --border: #e5e7eb;
+      --code-bg: #f8f9fc;
+      --code-dark: #0f172a;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .logo-badge { background: #7c3aed; color: white; font-weight: 700; font-size: 12px;
-                  padding: 3px 8px; border-radius: 5px; letter-spacing: 1px; }
-    header h1 { color: #111827; font-size: 16px; font-weight: 700; flex: 1; }
-    a.back { color: #6b7280; font-size: 13px; text-decoration: none;
-             padding: 6px 12px; border: 1px solid #e5e7eb; border-radius: 6px; }
-    a.back:hover { background: #f3f4f6; }
-    main { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
-    h2 { font-size: 22px; font-weight: 700; color: #111827; margin-bottom: 20px; }
-    .section { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px;
-               padding: 28px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
-    .section-title { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 16px;
-                     padding-bottom: 10px; border-bottom: 2px solid #f3f4f6;
-                     display: flex; align-items: center; gap: 8px; }
-    .section-icon { font-size: 20px; }
-    p { font-size: 14px; line-height: 1.8; color: #374151; margin-bottom: 12px; }
-    ol, ul { padding-left: 20px; margin-bottom: 12px; }
-    li { font-size: 14px; line-height: 1.8; color: #374151; margin-bottom: 4px; }
-    code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 13px;
-           font-family: monospace; color: #7c3aed; }
-    .code-block { background: #1f2937; color: #e5e7eb; padding: 16px; border-radius: 8px;
-                  font-family: monospace; font-size: 13px; margin: 12px 0; overflow-x: auto;
-                  line-height: 1.6; }
-    .tip { background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 6px;
-           padding: 12px 16px; margin: 12px 0; font-size: 13px; color: #6d28d9; }
-    .warning { background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px;
-               padding: 12px 16px; margin: 12px 0; font-size: 13px; color: #92400e; }
-    table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-    th { background: #f9fafb; padding: 10px 14px; text-align: left; font-size: 12px;
-         color: #6b7280; border: 1px solid #e5e7eb; font-weight: 600; }
-    td { padding: 10px 14px; font-size: 13px; border: 1px solid #e5e7eb; color: #374151; }
-    .badge-purple { background: #faf5ff; color: #7c3aed; border: 1px solid #c4b5fd;
-                    padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans JP', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── ヘッダー ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 0 var(--border);
+    }
+    .header-logo { height: 26px; object-fit: contain; }
+    .header-div { width: 1px; height: 18px; background: var(--border); }
+    .header-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      flex: 1;
+    }
+    .header-title span { color: var(--red); }
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 500;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn-back:hover {
+      background: var(--red-light);
+      border-color: var(--red-border);
+      color: var(--red);
+    }
+
+    /* ── レイアウト ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      max-width: 1280px;
+      margin: 0 auto;
+      min-height: calc(100vh - 60px);
+    }
+
+    /* ── サイドナビ ── */
+    .sidenav {
+      border-right: 1px solid var(--border);
+      padding: 32px 0;
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+    }
+    .sidenav-section {
+      margin-bottom: 28px;
+      padding: 0 20px;
+    }
+    .sidenav-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      padding-left: 4px;
+    }
+    .sidenav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+      margin-bottom: 2px;
+    }
+    .sidenav-item:hover {
+      background: var(--red-light);
+      color: var(--red);
+    }
+    .sidenav-item.active {
+      background: var(--red-light);
+      color: var(--red);
+      font-weight: 600;
+    }
+    .sidenav-item .icon { font-size: 14px; width: 18px; text-align: center; }
+
+    /* ── メインコンテンツ ── */
+    main {
+      padding: 48px 56px;
+      max-width: 860px;
+    }
+    .page-eyebrow {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 12px;
+    }
+    .page-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .page-sub {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+
+    /* ── セクション ── */
+    .doc-section {
+      margin-bottom: 56px;
+      scroll-margin-top: 80px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1.5px solid var(--border);
+    }
+    .section-icon-wrap {
+      width: 36px;
+      height: 36px;
+      background: var(--red-light);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ── ステップリスト ── */
+    .step-list { list-style: none; margin: 0 0 16px; }
+    .step-list li {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      line-height: 1.7;
+      color: #374151;
+    }
+    .step-list li:last-child { border-bottom: none; }
+    .step-num {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      background: var(--red);
+      color: white;
+      border-radius: 50%;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+
+    /* ── 通常リスト ── */
+    ul.plain { padding-left: 0; list-style: none; margin-bottom: 16px; }
+    ul.plain li {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #374151;
+      padding: 4px 0 4px 20px;
+      position: relative;
+    }
+    ul.plain li::before {
+      content: '›';
+      position: absolute;
+      left: 6px;
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    /* ── テーブル ── */
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+    th {
+      background: #f9fafb;
+      padding: 10px 14px;
+      text-align: left;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      border: 1px solid var(--border);
+    }
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      color: #374151;
+      vertical-align: top;
+      line-height: 1.6;
+    }
+    tr:hover td { background: #fafafa; }
+
+    /* ── コードブロック ── */
+    code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12.5px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      color: var(--red-dark);
+      border: 1px solid var(--red-border);
+    }
+    .code-block {
+      background: var(--code-dark);
+      color: #e2e8f0;
+      padding: 20px 24px;
+      border-radius: 12px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      margin: 16px 0;
+      overflow-x: auto;
+      line-height: 1.7;
+      position: relative;
+    }
+    .code-block .comment { color: #64748b; }
+    .code-block .cmd { color: #7df9c8; }
+
+    /* ── Tips / Warning ── */
+    .tip, .warning, .info {
+      display: flex;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      margin: 16px 0;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .tip {
+      background: var(--red-light);
+      border: 1px solid var(--red-border);
+      color: #9b2226;
+    }
+    .warning {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #92400e;
+    }
+    .info {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+    }
+    .tip-icon, .warning-icon, .info-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── バッジ ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-red { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
+    .badge-green { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .badge-gray { background: #f3f4f6; color: var(--text-muted); border: 1px solid var(--border); }
+
+    /* ── URLカード ── */
+    .url-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: border-color 0.15s;
+    }
+    .url-card:hover { border-color: var(--red-border); }
+    .url-card .url-icon { font-size: 20px; width: 32px; text-align: center; }
+    .url-card .url-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .url-card a {
+      font-size: 12px;
+      color: var(--red);
+      text-decoration: none;
+    }
+    .url-card a:hover { text-decoration: underline; }
+    .url-card .url-pw {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    p.body { font-size: 14px; line-height: 1.8; color: #374151; margin-bottom: 12px; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidenav { display: none; }
+      main { padding: 32px 24px; max-width: 100%; }
+    }
   </style>
 </head>
 <body>
+
 <header>
-  <span class="logo-badge">ISEAI</span>
-  <h1>Clawthon ISEAI — 運営マニュアル</h1>
-  <a class="back" href="/">← ダッシュボードへ</a>
+  <img class="header-logo" src="/static/iseai-logo.svg" alt="ISEAI">
+  <div class="header-div"></div>
+  <span class="header-title">Clawthon <span>ISEAI</span> — 運営マニュアル</span>
+  <a href="/" class="btn-back">← ダッシュボード</a>
 </header>
 
-<main>
-  <h2>運営者向け操作ガイド</h2>
+<div class="layout">
 
-  <!-- 1. ハッカソン当日の手順 -->
-  <div class="section">
-    <div class="section-title">
-      <span class="section-icon">📋</span>当日の準備手順
+  <!-- サイドナビ -->
+  <nav class="sidenav">
+    <div class="sidenav-section">
+      <div class="sidenav-label">はじめに</div>
+      <a href="#overview" class="sidenav-item active">
+        <span class="icon">📖</span>概要
+      </a>
     </div>
-    <p>ハッカソン開始前に以下の順で準備してください。</p>
-    <ol>
-      <li><strong>参加者情報を登録</strong> — ダッシュボード下部のフォームから名前・メールを追加</li>
-      <li><strong>APIキーを設定</strong> — 各参加者行の「▼ 編集」を開いてAnthropicまたはOpenRouterのAPIキーを貼り付け → 保存</li>
-      <li><strong>VMを作成</strong> — 「作成」ボタンを押す（バックグラウンドで5〜10分かかります）</li>
-      <li><strong>参加者にURLを共有</strong> — <code>https://p01.iseai.neuratools.ai</code> の形式でURLを配布</li>
-    </ol>
-    <div class="tip">💡 APIキーを設定してから「作成」ボタンを押してください。APIキーはVMの起動時に自動で注入されます。</div>
-  </div>
-
-  <!-- 2. 参加者VM管理 -->
-  <div class="section">
-    <div class="section-title">
-      <span class="section-icon">🖥️</span>参加者VM 管理
+    <div class="sidenav-section">
+      <div class="sidenav-label">当日の手順</div>
+      <a href="#prepare" class="sidenav-item">
+        <span class="icon">📋</span>事前準備
+      </a>
+      <a href="#launch" class="sidenav-item">
+        <span class="icon">🚀</span>ハッカソン開始
+      </a>
+      <a href="#close" class="sidenav-item">
+        <span class="icon">🏁</span>終了・後片付け
+      </a>
     </div>
-    <table>
-      <tr>
-        <th>操作</th><th>説明</th><th>所要時間</th>
-      </tr>
-      <tr>
-        <td><span class="badge-purple">作成</span></td>
-        <td>新規VMを作成。cloud-initでDocker・OpenHands・code-serverを自動セットアップ</td>
-        <td>5〜10分</td>
-      </tr>
-      <tr>
-        <td><span class="badge-purple">起動</span></td>
-        <td>停止中のVMを再起動（SPOTインスタンスは自動停止する場合あり）</td>
-        <td>1〜2分</td>
-      </tr>
-      <tr>
-        <td><span class="badge-purple">停止</span></td>
-        <td>VMをシャットダウン。データは保持される</td>
-        <td>30秒</td>
-      </tr>
-      <tr>
-        <td><span class="badge-purple">削除</span></td>
-        <td>VMとDNSレコードを完全削除。データも消えるので注意</td>
-        <td>1分</td>
-      </tr>
-    </table>
-    <div class="warning">⚠️ SPOT（プリエンプティブル）インスタンスはGCPのリソース不足時に自動停止されます。停止した場合は「起動」ボタンで再起動してください。</div>
-  </div>
-
-  <!-- 3. OpenHands -->
-  <div class="section">
-    <div class="section-title">
-      <span class="section-icon">🤖</span>OpenHands の操作
+    <div class="sidenav-section">
+      <div class="sidenav-label">ツール操作</div>
+      <a href="#vm" class="sidenav-item">
+        <span class="icon">🖥️</span>参加者VM管理
+      </a>
+      <a href="#openhands" class="sidenav-item">
+        <span class="icon">🤖</span>OpenHands
+      </a>
+      <a href="#vscode" class="sidenav-item">
+        <span class="icon">💻</span>VSCode
+      </a>
     </div>
-    <p>OpenHandsはAIエージェントが自律的にコードを書くツールです。参加者は自然言語でタスクを指示できます。</p>
-    <ul>
-      <li><strong>参加者URL</strong>: <code>https://p01.iseai.neuratools.ai/openhands/</code></li>
-      <li><strong>コンソールからチャット</strong>: ダッシュボードの「チャット」ボタンで管理画面内に埋め込み表示</li>
-      <li><strong>バージョン変更</strong>: 「OpenHands 設定」パネルでバージョンを選択 → 「設定を保存 &amp; VM再起動」</li>
-    </ul>
-    <div class="tip">💡 OpenHandsが「未起動」と表示されている場合は、APIキーが未設定か、コンテナの起動に時間がかかっています。VM作成から5分ほどお待ちください。</div>
-  </div>
-
-  <!-- 4. code-server (VSCode) -->
-  <div class="section">
-    <div class="section-title">
-      <span class="section-icon">💻</span>VSCode (code-server) の操作
+    <div class="sidenav-section">
+      <div class="sidenav-label">管理・監視</div>
+      <a href="#cost" class="sidenav-item">
+        <span class="icon">💴</span>コスト管理
+      </a>
+      <a href="#monitor" class="sidenav-item">
+        <span class="icon">📊</span>サーバー監視
+      </a>
+      <a href="#logs" class="sidenav-item">
+        <span class="icon">📄</span>ログ確認
+      </a>
     </div>
-    <p>参加者はブラウザ上でVSCodeを使ってコードを編集できます。</p>
-    <ul>
-      <li><strong>参加者URL</strong>: <code>https://p01.iseai.neuratools.ai/code/</code></li>
-      <li><strong>パスワード</strong>: <code>clawthon2026</code></li>
-      <li><strong>ワークスペース</strong>: <code>/opt/clawthon/workspace</code> にマウント済み</li>
-    </ul>
-  </div>
-
-  <!-- 5. コスト管理 -->
-  <div class="section">
-    <div class="section-title">
-      <span class="section-icon">💴</span>コスト管理
+    <div class="sidenav-section">
+      <div class="sidenav-label">サポート</div>
+      <a href="#trouble" class="sidenav-item">
+        <span class="icon">🔧</span>トラブルシューティング
+      </a>
+      <a href="#urls" class="sidenav-item">
+        <span class="icon">🔗</span>URL一覧
+      </a>
+      <a href="#ssh" class="sidenav-item">
+        <span class="icon">⌨️</span>SSHコマンド集
+      </a>
     </div>
-    <p>ダッシュボードのヘッダーに概算コストを表示しています。</p>
-    <table>
-      <tr>
-        <th>リソース</th><th>スペック</th><th>料金（概算）</th>
-      </tr>
-      <tr>
-        <td>管理VM (polaris)</td>
-        <td>e2-small, 常時稼働</td>
-        <td>$0.017/時 ≈ ¥2.5/時</td>
-      </tr>
-      <tr>
-        <td>参加者VM (vega等)</td>
-        <td>e2-standard-2, SPOT</td>
-        <td>$0.025/時 ≈ ¥3.75/時/台</td>
-      </tr>
-      <tr>
-        <td>Cloud DNS</td>
-        <td>ゾーン1個</td>
-        <td>$0.20/月</td>
-      </tr>
-    </table>
-    <p><strong>例：参加者10人、2日間（48時間）のコスト概算：</strong></p>
-    <div class="code-block">管理VM:   $0.017 × 48 = $0.82
-参加者VM: $0.025 × 48 × 10台 = $12.00
-合計:     $12.82 ≈ ¥1,923（150円/ドル換算）</div>
-    <div class="tip">💡 ハッカソン終了後は「停止」または「削除」でコストを抑えてください。SPOTインスタンスは通常の約70%引きです。</div>
-  </div>
+  </nav>
 
-  <!-- 6. トラブルシューティング -->
-  <div class="section">
-    <div class="section-title">
-      <span class="section-icon">🔧</span>トラブルシューティング
+  <!-- メインコンテンツ -->
+  <main>
+    <div class="page-eyebrow">Operator Guide</div>
+    <h1 class="page-title">Clawthon ISEAI 運営マニュアル</h1>
+    <p class="page-sub">このマニュアルはハッカソン運営者向けです。VM作成・コスト管理・トラブルシューティングまでを網羅しています。</p>
+
+    <!-- 概要 -->
+    <div class="doc-section" id="overview">
+      <div class="section-header">
+        <div class="section-icon-wrap">📖</div>
+        <h2 class="section-title">システム概要</h2>
+      </div>
+      <p class="body">Clawthon ISEAIは、ハッカソン参加者一人ひとりに専用の開発環境（VM）を提供するプラットフォームです。運営者はこの管理コンソールから全VMを一元管理できます。</p>
+      <table>
+        <tr>
+          <th>コンポーネント</th><th>役割</th><th>サーバー</th>
+        </tr>
+        <tr>
+          <td><strong>管理コンソール</strong></td>
+          <td>運営者向けダッシュボード（このアプリ）</td>
+          <td>polaris (管理VM)</td>
+        </tr>
+        <tr>
+          <td><strong>参加者VM</strong></td>
+          <td>各参加者の開発環境（OpenHands + VSCode）</td>
+          <td>vega, altair, ... (参加者VM)</td>
+        </tr>
+        <tr>
+          <td><strong>OpenHands</strong></td>
+          <td>AIエージェント（自律コーディング）</td>
+          <td>各参加者VM :3000</td>
+        </tr>
+        <tr>
+          <td><strong>code-server</strong></td>
+          <td>ブラウザ版VSCode</td>
+          <td>各参加者VM :8080</td>
+        </tr>
+        <tr>
+          <td><strong>nginx + SSL</strong></td>
+          <td>リバースプロキシ、Let's Encrypt証明書</td>
+          <td>各VM (Let's Encrypt)</td>
+        </tr>
+      </table>
     </div>
-    <table>
-      <tr>
-        <th>症状</th><th>原因</th><th>対処</th>
-      </tr>
-      <tr>
-        <td>VMが「TERMINATED」になった</td>
-        <td>SPOTインスタンスがGCPに回収された</td>
-        <td>「起動」ボタンで再起動</td>
-      </tr>
-      <tr>
-        <td>OpenHandsが「未起動」のまま</td>
-        <td>APIキー未設定 / コンテナ起動中</td>
-        <td>APIキーを確認。VM作成後5分待つ</td>
-      </tr>
-      <tr>
-        <td>ページが開かない（SSL エラー）</td>
-        <td>証明書の更新失敗 / nginx停止</td>
-        <td>VM再起動後にcertbot renewを実行</td>
-      </tr>
-      <tr>
-        <td>管理コンソールにアクセスできない</td>
-        <td>サービス停止</td>
-        <td>管理VMにSSHして <code>sudo systemctl restart clawthon-console</code></td>
-      </tr>
-    </table>
 
-    <p style="margin-top:16px"><strong>緊急SSHコマンド:</strong></p>
-    <div class="code-block">
-# 管理VMへSSH
-gcloud compute ssh clawthon-management --project=clawthon-iseai --zone=asia-northeast1-b
-
-# 参加者VMへSSH
-gcloud compute ssh clawthon-p01 --project=clawthon-iseai --zone=asia-northeast1-b
-
-# コンソール再起動
-sudo systemctl restart clawthon-console
-sudo systemctl status clawthon-console
-
-# OpenHands再起動
-sudo docker restart openhands
-
-# SSL証明書更新
-sudo certbot renew --nginx</div>
-  </div>
-
-  <!-- 7. URL一覧 -->
-  <div class="section">
-    <div class="section-title">
-      <span class="section-icon">🔗</span>URL一覧
+    <!-- 事前準備 -->
+    <div class="doc-section" id="prepare">
+      <div class="section-header">
+        <div class="section-icon-wrap">📋</div>
+        <h2 class="section-title">事前準備（前日まで）</h2>
+      </div>
+      <ol class="step-list">
+        <li>
+          <span class="step-num">1</span>
+          <div><strong>参加者リストの確定</strong><br>氏名・メールアドレスをスプレッドシートで整理する。参加者数分のAPIキー（AnthropicまたはOpenRouter）を準備する。</div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div><strong>GCPプロジェクトの確認</strong><br><code>clawthon-iseai</code> プロジェクトの請求が有効であること、Compute Engine APIが有効であることを確認する。</div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div><strong>管理コンソールへのログイン確認</strong><br><a href="https://console.iseai.neuratools.ai" target="_blank">https://console.iseai.neuratools.ai</a> にアクセスし、メールアドレス + パスワードでログインできることを確認する。</div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div><strong>テスト用VMの作成（推奨）</strong><br>前日に1台テストVMを作成して、OpenHands・VSCode・SSLが正常に動くか確認する。問題なければ削除する。</div>
+        </li>
+      </ol>
+      <div class="tip">
+        <span class="tip-icon">💡</span>
+        APIキーはAnthropicの場合 <code>sk-ant-...</code>、OpenRouterの場合 <code>sk-or-v1-...</code> の形式です。LiteLLM Proxyを使う場合はProxyのURLとキーを設定してください。
+      </div>
     </div>
-    <table>
-      <tr>
-        <th>サービス</th><th>URL</th><th>パスワード</th>
-      </tr>
-      <tr>
-        <td>管理コンソール</td>
-        <td><a href="https://console.iseai.neuratools.ai" target="_blank">https://console.iseai.neuratools.ai</a></td>
-        <td>（管理パスワード）</td>
-      </tr>
-      <tr>
-        <td>参加者01 トップ</td>
-        <td><a href="https://p01.iseai.neuratools.ai" target="_blank">https://p01.iseai.neuratools.ai</a></td>
-        <td>—</td>
-      </tr>
-      <tr>
-        <td>参加者01 OpenHands</td>
-        <td><a href="https://p01.iseai.neuratools.ai/openhands/" target="_blank">https://p01.iseai.neuratools.ai/openhands/</a></td>
-        <td>—</td>
-      </tr>
-      <tr>
-        <td>参加者01 VSCode</td>
-        <td><a href="https://p01.iseai.neuratools.ai/code/" target="_blank">https://p01.iseai.neuratools.ai/code/</a></td>
-        <td>clawthon2026</td>
-      </tr>
-      <tr>
-        <td>GCPコンソール</td>
-        <td><a href="https://console.cloud.google.com/compute/instances?project=clawthon-iseai" target="_blank">GCP Compute Engine</a></td>
-        <td>—</td>
-      </tr>
-    </table>
-  </div>
-</main>
+
+    <!-- ハッカソン開始 -->
+    <div class="doc-section" id="launch">
+      <div class="section-header">
+        <div class="section-icon-wrap">🚀</div>
+        <h2 class="section-title">ハッカソン当日の開始手順</h2>
+      </div>
+      <ol class="step-list">
+        <li>
+          <span class="step-num">1</span>
+          <div><strong>参加者をダッシュボードに追加</strong><br>ダッシュボード下部の「参加者を追加」フォームから名前・メールを登録する。</div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div><strong>APIキーを各参加者に設定</strong><br>各参加者行の「▼ 編集」を開き、APIキーを貼り付けて「保存」する。<br><span class="badge badge-red">重要</span> APIキーを設定してから「作成」ボタンを押すこと。</div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div><strong>VMを作成</strong><br>参加者行の「作成」ボタンを押す。バックグラウンドで5〜10分かかる。ステータスが <code>RUNNING</code> になれば完了。</div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div><strong>URLを参加者に共有</strong><br>VMが起動したら <code>https://p<em>XX</em>.iseai.neuratools.ai</code> を参加者に伝える。OpenHandsとVSCodeの両方が使える。</div>
+        </li>
+      </ol>
+      <div class="warning">
+        <span class="warning-icon">⚠️</span>
+        VM作成からOpenHandsが使えるようになるまで約5〜10分かかります。参加者に「少し待つよう」伝えてください。
+      </div>
+    </div>
+
+    <!-- 終了 -->
+    <div class="doc-section" id="close">
+      <div class="section-header">
+        <div class="section-icon-wrap">🏁</div>
+        <h2 class="section-title">ハッカソン終了・後片付け</h2>
+      </div>
+      <ol class="step-list">
+        <li>
+          <span class="step-num">1</span>
+          <div><strong>参加者の成果物をバックアップ</strong><br>各VMの <code>/opt/clawthon/workspace</code> に成果物がある。必要であればSFTPまたはGCSにバックアップする。</div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div><strong>VMを停止または削除</strong><br>コスト節約のため、不要なVMは「停止」または「削除」する。<span class="badge badge-gray">停止</span>はデータを保持、<span class="badge badge-red">削除</span>はデータも消える。</div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div><strong>コスト確認</strong><br>GCPコンソールで請求額を確認する。ダッシュボードの概算コスト表示も参考にすること。</div>
+        </li>
+      </ol>
+    </div>
+
+    <!-- VM管理 -->
+    <div class="doc-section" id="vm">
+      <div class="section-header">
+        <div class="section-icon-wrap">🖥️</div>
+        <h2 class="section-title">参加者VM 管理</h2>
+      </div>
+      <table>
+        <tr>
+          <th>操作</th><th>説明</th><th>所要時間</th><th>データ</th>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">作成</span></td>
+          <td>新規VMを作成。Docker・OpenHands・code-server・nginxを自動セットアップ</td>
+          <td>5〜10分</td>
+          <td>新規</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">起動</span></td>
+          <td>停止中のVMを再起動。Dockerコンテナも自動起動</td>
+          <td>1〜2分</td>
+          <td>保持</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-gray">停止</span></td>
+          <td>VMをシャットダウン。ディスクデータは保持される</td>
+          <td>30秒</td>
+          <td>保持</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-red">削除</span></td>
+          <td>VMとDNSレコードを完全削除。データも消える</td>
+          <td>1分</td>
+          <td><strong>消去</strong></td>
+        </tr>
+      </table>
+      <div class="warning">
+        <span class="warning-icon">⚠️</span>
+        SPOT（プリエンプティブル）インスタンスはGCPのリソース不足時に自動停止されることがあります。停止した場合は「起動」ボタンで再起動してください。
+      </div>
+    </div>
+
+    <!-- OpenHands -->
+    <div class="doc-section" id="openhands">
+      <div class="section-header">
+        <div class="section-icon-wrap">🤖</div>
+        <h2 class="section-title">OpenHands の操作</h2>
+      </div>
+      <p class="body">OpenHandsはAIエージェントが自律的にコードを書くツールです。参加者は自然言語でタスクを指示するだけでコードが自動生成されます。</p>
+      <ul class="plain">
+        <li><strong>参加者URL</strong>: <code>https://pXX.iseai.neuratools.ai/openhands/</code></li>
+        <li><strong>管理コンソールからチャット</strong>: ダッシュボードの「チャット」ボタンで管理画面内に埋め込み表示</li>
+        <li><strong>バージョン変更</strong>: 「OpenHands 設定」パネルでバージョンを選択 → 「保存 &amp; 再起動」</li>
+        <li><strong>ポート</strong>: 各VM上の <code>:3000</code> で動作（nginxが <code>/openhands/</code> にプロキシ）</li>
+      </ul>
+
+      <p class="body" style="margin-top:20px"><strong>バージョン管理</strong></p>
+      <table>
+        <tr>
+          <th>バージョン</th><th>ステータス</th><th>推奨</th>
+        </tr>
+        <tr>
+          <td><code>latest</code></td>
+          <td>最新リリース（自動更新）</td>
+          <td><span class="badge badge-green">推奨</span></td>
+        </tr>
+        <tr>
+          <td><code>0.29</code></td>
+          <td>安定版</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><code>0.28</code></td>
+          <td>旧バージョン</td>
+          <td>—</td>
+        </tr>
+      </table>
+      <div class="tip">
+        <span class="tip-icon">💡</span>
+        OpenHandsが「未起動」と表示されている場合は、APIキーが未設定か、コンテナの起動に時間がかかっています。VM作成から5分ほどお待ちください。
+      </div>
+    </div>
+
+    <!-- VSCode -->
+    <div class="doc-section" id="vscode">
+      <div class="section-header">
+        <div class="section-icon-wrap">💻</div>
+        <h2 class="section-title">VSCode (code-server) の操作</h2>
+      </div>
+      <p class="body">参加者はブラウザ上でVSCodeを使ってコードを編集・デバッグできます。ターミナルも使用可能です。</p>
+      <ul class="plain">
+        <li><strong>参加者URL</strong>: <code>https://pXX.iseai.neuratools.ai/code/</code></li>
+        <li><strong>パスワード</strong>: <code>clawthon2026</code></li>
+        <li><strong>ワークスペース</strong>: <code>/opt/clawthon/workspace</code> にマウント済み</li>
+        <li><strong>ポート</strong>: 各VM上の <code>:8080</code> で動作</li>
+      </ul>
+      <div class="info">
+        <span class="info-icon">ℹ️</span>
+        code-serverのパスワードは全参加者共通です。セキュリティが必要な場合は個別に変更してください（VM内 <code>/home/ubuntu/.config/code-server/config.yaml</code>）。
+      </div>
+    </div>
+
+    <!-- コスト管理 -->
+    <div class="doc-section" id="cost">
+      <div class="section-header">
+        <div class="section-icon-wrap">💴</div>
+        <h2 class="section-title">コスト管理</h2>
+      </div>
+      <p class="body">ダッシュボードのヘッダーに概算コストをリアルタイム表示しています。</p>
+      <table>
+        <tr>
+          <th>リソース</th><th>スペック</th><th>単価（概算）</th>
+        </tr>
+        <tr>
+          <td>管理VM (polaris)</td>
+          <td>e2-small, 常時稼働</td>
+          <td>$0.017/時 ≈ ¥2.5/時</td>
+        </tr>
+        <tr>
+          <td>参加者VM (SPOT)</td>
+          <td>e2-standard-2, プリエンプティブル</td>
+          <td>$0.025/時 ≈ ¥3.75/時/台</td>
+        </tr>
+        <tr>
+          <td>Cloud DNS</td>
+          <td>ゾーン1個</td>
+          <td>$0.20/月</td>
+        </tr>
+        <tr>
+          <td>静的IP</td>
+          <td>使用中は無料、未使用は $0.010/時</td>
+          <td>運用中は無料</td>
+        </tr>
+      </table>
+
+      <p class="body" style="margin-top:20px"><strong>コスト試算例：参加者10人・2日間（48時間）</strong></p>
+      <div class="code-block">
+<span class="comment"># 参加者VM（SPOT）</span>
+$0.025 × 48時間 × 10台 = <span class="cmd">$12.00</span>
+
+<span class="comment"># 管理VM（常時稼働）</span>
+$0.017 × 48時間 = <span class="cmd">$0.82</span>
+
+<span class="comment"># 合計（150円/ドル換算）</span>
+$12.82 ≈ <span class="cmd">¥1,923</span></div>
+      <div class="tip">
+        <span class="tip-icon">💡</span>
+        ハッカソン終了後は必ずVMを「停止」または「削除」してください。SPOTインスタンスは通常の約70%引きですが、起動したままだとコストが積み上がります。
+      </div>
+    </div>
+
+    <!-- サーバー監視 -->
+    <div class="doc-section" id="monitor">
+      <div class="section-header">
+        <div class="section-icon-wrap">📊</div>
+        <h2 class="section-title">サーバー監視</h2>
+      </div>
+      <p class="body">ダッシュボードの「監視」ボタンで各VMのリアルタイムメトリクスを確認できます。</p>
+      <table>
+        <tr>
+          <th>指標</th><th>確認方法</th><th>目安</th>
+        </tr>
+        <tr>
+          <td><strong>CPU使用率</strong></td>
+          <td>監視パネルに % 表示</td>
+          <td>OpenHands実行中は 70-90% が正常</td>
+        </tr>
+        <tr>
+          <td><strong>メモリ使用率</strong></td>
+          <td>監視パネルに % 表示</td>
+          <td>80% 超えたら要注意</td>
+        </tr>
+        <tr>
+          <td><strong>ディスク使用率</strong></td>
+          <td>監視パネルに % 表示</td>
+          <td>90% 超えたらワークスペースを整理</td>
+        </tr>
+        <tr>
+          <td><strong>OpenHandsバージョン</strong></td>
+          <td>監視パネルに表示</td>
+          <td>設定バージョンと一致していること</td>
+        </tr>
+        <tr>
+          <td><strong>コンテナ状態</strong></td>
+          <td>openhands: running / code-server: running</td>
+          <td>両方 running が正常</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ログ確認 -->
+    <div class="doc-section" id="logs">
+      <div class="section-header">
+        <div class="section-icon-wrap">📄</div>
+        <h2 class="section-title">ログ確認</h2>
+      </div>
+      <p class="body">ダッシュボードの「ログ」ボタンから各VMのログを確認できます。</p>
+      <ul class="plain">
+        <li><strong>OpenHands ログ</strong>: Dockerコンテナのstdout。エラー・進捗確認に使用</li>
+        <li><strong>管理コンソール ログ</strong>: systemdサービスのログ。API呼び出し・エラー追跡に使用</li>
+      </ul>
+      <p class="body" style="margin-top:16px">SSHで直接確認する場合：</p>
+      <div class="code-block">
+<span class="comment"># OpenHandsのリアルタイムログ</span>
+<span class="cmd">sudo docker logs -f openhands --tail 50</span>
+
+<span class="comment"># 管理コンソールのサービスログ</span>
+<span class="cmd">sudo journalctl -u clawthon-console -f --lines 50</span>
+
+<span class="comment"># nginxのエラーログ</span>
+<span class="cmd">sudo tail -f /var/log/nginx/error.log</span></div>
+    </div>
+
+    <!-- トラブルシューティング -->
+    <div class="doc-section" id="trouble">
+      <div class="section-header">
+        <div class="section-icon-wrap">🔧</div>
+        <h2 class="section-title">トラブルシューティング</h2>
+      </div>
+      <table>
+        <tr>
+          <th>症状</th><th>原因</th><th>対処</th>
+        </tr>
+        <tr>
+          <td>VMが「TERMINATED」</td>
+          <td>SPOTインスタンスがGCPに回収された</td>
+          <td>「起動」ボタンで再起動</td>
+        </tr>
+        <tr>
+          <td>OpenHandsが「未起動」のまま</td>
+          <td>APIキー未設定 / コンテナ起動中</td>
+          <td>APIキーを確認。VM作成後5分待つ</td>
+        </tr>
+        <tr>
+          <td>SSL エラー (ERR_CERT_*)</td>
+          <td>証明書の更新失敗 / nginx停止</td>
+          <td><code>sudo certbot renew --nginx</code> を実行</td>
+        </tr>
+        <tr>
+          <td>管理コンソールにアクセスできない</td>
+          <td>サービス停止 / デプロイ失敗</td>
+          <td><code>sudo systemctl restart clawthon-console</code></td>
+        </tr>
+        <tr>
+          <td>VM作成が失敗する</td>
+          <td>GCPクォータ超過 / 認証エラー</td>
+          <td>GCPコンソールでエラーを確認。クォータ申請が必要な場合あり</td>
+        </tr>
+        <tr>
+          <td>OpenHandsが遅い / 固まる</td>
+          <td>メモリ不足 / API制限</td>
+          <td>コンテナ再起動: <code>sudo docker restart openhands</code></td>
+        </tr>
+        <tr>
+          <td>VSCodeにアクセスできない</td>
+          <td>code-serverコンテナが停止</td>
+          <td><code>sudo docker restart code-server</code></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- URL一覧 -->
+    <div class="doc-section" id="urls">
+      <div class="section-header">
+        <div class="section-icon-wrap">🔗</div>
+        <h2 class="section-title">URL一覧</h2>
+      </div>
+
+      <div class="url-card">
+        <div class="url-icon">⚙️</div>
+        <div>
+          <div class="url-name">管理コンソール</div>
+          <a href="https://console.iseai.neuratools.ai" target="_blank">https://console.iseai.neuratools.ai</a>
+        </div>
+        <div class="url-pw">r.sonoda@protocore.co.jp</div>
+      </div>
+      <div class="url-card">
+        <div class="url-icon">🖥️</div>
+        <div>
+          <div class="url-name">参加者01 — トップ</div>
+          <a href="https://p01.iseai.neuratools.ai" target="_blank">https://p01.iseai.neuratools.ai</a>
+        </div>
+        <div class="url-pw">—</div>
+      </div>
+      <div class="url-card">
+        <div class="url-icon">🤖</div>
+        <div>
+          <div class="url-name">参加者01 — OpenHands</div>
+          <a href="https://p01.iseai.neuratools.ai/openhands/" target="_blank">https://p01.iseai.neuratools.ai/openhands/</a>
+        </div>
+        <div class="url-pw">—</div>
+      </div>
+      <div class="url-card">
+        <div class="url-icon">💻</div>
+        <div>
+          <div class="url-name">参加者01 — VSCode</div>
+          <a href="https://p01.iseai.neuratools.ai/code/" target="_blank">https://p01.iseai.neuratools.ai/code/</a>
+        </div>
+        <div class="url-pw">clawthon2026</div>
+      </div>
+      <div class="url-card">
+        <div class="url-icon">☁️</div>
+        <div>
+          <div class="url-name">GCP コンソール</div>
+          <a href="https://console.cloud.google.com/compute/instances?project=clawthon-iseai" target="_blank">console.cloud.google.com — clawthon-iseai</a>
+        </div>
+        <div class="url-pw">Googleアカウント</div>
+      </div>
+    </div>
+
+    <!-- SSHコマンド集 -->
+    <div class="doc-section" id="ssh">
+      <div class="section-header">
+        <div class="section-icon-wrap">⌨️</div>
+        <h2 class="section-title">SSHコマンド集</h2>
+      </div>
+      <p class="body">緊急時やコンソールで操作できない場合は、直接VMにSSHして対応します。</p>
+      <div class="code-block">
+<span class="comment"># ── 管理VMへSSH ──────────────────────────────</span>
+<span class="cmd">gcloud compute ssh clawthon-management \
+  --project=clawthon-iseai \
+  --zone=asia-northeast1-b</span>
+
+<span class="comment"># ── 参加者VMへSSH ────────────────────────────</span>
+<span class="cmd">gcloud compute ssh clawthon-p01 \
+  --project=clawthon-iseai \
+  --zone=asia-northeast1-b</span>
+
+<span class="comment"># ── コンソール再起動 ──────────────────────────</span>
+<span class="cmd">sudo systemctl restart clawthon-console
+sudo systemctl status clawthon-console</span>
+
+<span class="comment"># ── Dockerコンテナ再起動 ──────────────────────</span>
+<span class="cmd">sudo docker restart openhands
+sudo docker restart code-server
+sudo docker ps</span>
+
+<span class="comment"># ── SSL証明書の更新 ───────────────────────────</span>
+<span class="cmd">sudo certbot renew --nginx
+sudo nginx -t && sudo systemctl reload nginx</span>
+
+<span class="comment"># ── nginxのリロード ───────────────────────────</span>
+<span class="cmd">sudo nginx -t
+sudo systemctl reload nginx</span>
+
+<span class="comment"># ── ディスク確認 ──────────────────────────────</span>
+<span class="cmd">df -h
+du -sh /opt/clawthon/workspace/*</span></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// サイドナビのアクティブ状態をスクロールに合わせて更新
+const sections = document.querySelectorAll('.doc-section');
+const navItems = document.querySelectorAll('.sidenav-item');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(a => a.classList.remove('active'));
+      const active = document.querySelector(`.sidenav-item[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -60% 0px' });
+
+sections.forEach(s => observer.observe(s));
+</script>
+
 </body>
 </html>
