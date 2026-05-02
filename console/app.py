@@ -1,5 +1,5 @@
 import json, subprocess, os, secrets, hashlib
-from mailer import send_vm_ready
+from mailer import send_vm_ready, send_welcome
 from pathlib import Path
 from datetime import datetime
 from fastapi import FastAPI, Request, Form, Cookie, HTTPException
@@ -18,7 +18,7 @@ GCLOUD = os.getenv("GCLOUD_PATH", "/usr/bin/gcloud")
 DATA_FILE = Path("/opt/clawthon/console/participants.json")
 SETTINGS_FILE = Path("/opt/clawthon/console/settings.json")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "clawthon2026")
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "r.sonoda@protocore.co.jp")
+ADMIN_EMAILS = {e.strip().lower() for e in os.getenv("ADMIN_EMAILS", "r.sonoda@protocore.co.jp,masahiro@takechi.jp").split(",") if e.strip()}
 ADMIN_TOKEN = hashlib.sha256(ADMIN_PASSWORD.encode()).hexdigest()
 LITELLM_MASTER_KEY = os.getenv("LITELLM_MASTER_KEY", "clawthon-master-key")
 LITELLM_URL = os.getenv("LITELLM_URL", "http://localhost:4000")
@@ -140,7 +140,7 @@ async def login_page(request: Request, error: str = ""):
 
 @app.post("/login")
 async def login(email: str = Form(...), password: str = Form(...)):
-    email_ok = email.lower().strip() == ADMIN_EMAIL.lower()
+    email_ok = email.lower().strip() in ADMIN_EMAILS
     pass_ok = hashlib.sha256(password.encode()).hexdigest() == ADMIN_TOKEN
     if email_ok and pass_ok:
         resp = RedirectResponse("/", status_code=303)
@@ -484,6 +484,25 @@ async def service_logs(pid: str, service: str = "clawthon-console", session: str
         logs = await loop.run_in_executor(_executor, _get_logs)
         return JSONResponse({"pid": "management", "logs": logs})
     return JSONResponse({"error": "Invalid pid"})
+
+
+@app.post("/api/vm/{pid}/send-welcome")
+async def api_send_welcome(pid: str, session: str = Cookie(default="")):
+    if not is_admin(session):
+        raise HTTPException(403)
+    data = load_data()
+    p = next((x for x in data["participants"] if x["id"] == pid), None)
+    if not p:
+        return JSONResponse({"ok": False, "error": "参加者が見つかりません"})
+    email = p.get("email", "")
+    if not email:
+        return JSONResponse({"ok": False, "error": "メールアドレスが未設定です"})
+    name = p.get("name", f"参加者{pid}")
+    ok = send_welcome(email, name, pid)
+    if ok:
+        return JSONResponse({"ok": True, "message": f"{email} に送信しました"})
+    else:
+        return JSONResponse({"ok": False, "error": "SMTP未設定またはメール送信に失敗しました。サーバー環境変数 SMTP_USER / SMTP_PASS を確認してください。"})
 
 
 if __name__ == "__main__":

@@ -211,6 +211,8 @@
     .btn-stop:hover { background: var(--red-light); }
     .btn-delete { color: var(--text-muted); border-color: var(--border); }
     .btn-delete:hover { background: var(--bg); color: #dc2626; border-color: #fecaca; }
+    .btn-mail { color: #0369a1; border-color: #bae6fd; }
+    .btn-mail:hover { background: #f0f9ff; }
     .btn-chat {
       color: var(--red); border-color: var(--red-border); font-size: 11px;
     }
@@ -531,6 +533,36 @@
         output.textContent = '取得失敗';
       }
     }
+
+    async function sendWelcomeMail(pid, email) {
+      if (!confirm(`${email} に開発環境URLとアクセス情報を送信しますか？`)) return;
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = '送信中…';
+      try {
+        const res = await fetch(`/api/vm/${pid}/send-welcome`, { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          btn.textContent = '✓ 送信済';
+          btn.style.color = '#059669';
+          btn.style.borderColor = '#bbf7d0';
+          setTimeout(() => {
+            btn.textContent = '📧 メール';
+            btn.style.color = '';
+            btn.style.borderColor = '';
+            btn.disabled = false;
+          }, 4000);
+        } else {
+          alert('メール送信失敗: ' + data.error);
+          btn.textContent = '📧 メール';
+          btn.disabled = false;
+        }
+      } catch(e) {
+        alert('通信エラー');
+        btn.textContent = '📧 メール';
+        btn.disabled = false;
+      }
+    }
   </script>
 </head>
 <body>
@@ -654,6 +686,9 @@
                 <form method="post" action="/vm/{{ p.id }}/stop">
                   <button class="btn btn-stop">■ 停止</button>
                 </form>
+              {% endif %}
+                {% if p.vm_status == 'RUNNING' and p.email %}
+                <button class="btn btn-mail" onclick="sendWelcomeMail('{{ p.id }}', '{{ p.email }}')">📧 メール</button>
               {% endif %}
               {% if p.vm_status != 'NOT_EXISTS' %}
                 <form method="post" action="/vm/{{ p.id }}/delete"
