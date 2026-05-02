@@ -9,3 +9,4 @@ participants-keys.csv
 .pytest_cache/
 CREDENTIALS.md
 .env
+CREDENTIALS.txt
