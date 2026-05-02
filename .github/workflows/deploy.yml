@@ -27,8 +27,11 @@ jobs:
 
       - name: 管理VMにデプロイ
         run: |
-          # コードをコピー
+          # コードをコピー（データファイルは除外）
           rsync -avz --delete \
+            --exclude='participants.json' \
+            --exclude='settings.json' \
+            --exclude='*.log' \
             console/ \
             shintaku81@34.84.2.212:/opt/clawthon/console/
 
