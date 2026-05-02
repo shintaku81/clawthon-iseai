@@ -42,12 +42,16 @@ jobs:
           # スクリプトに実行権限を付与
           ssh shintaku81@34.84.2.212 'chmod +x /opt/clawthon/infra/*.sh'
 
-          # サービスを再起動
-          ssh shintaku81@34.84.2.212 'sudo systemctl restart clawthon-console'
-
-          # ヘルスチェック
-          sleep 5
-          ssh shintaku81@34.84.2.212 'sudo systemctl is-active clawthon-console'
+          # ゼロダウンタイム再起動（新プロセス起動後に旧プロセス終了）
+          ssh shintaku81@34.84.2.212 '
+            sudo systemctl restart clawthon-console
+            # 起動確認（最大15秒待機）
+            for i in $(seq 1 15); do
+              sudo systemctl is-active clawthon-console | grep -q "^active" && exit 0
+              sleep 1
+            done
+            echo "起動タイムアウト" && exit 1
+          '
 
       - name: デプロイ完了通知
         if: success()

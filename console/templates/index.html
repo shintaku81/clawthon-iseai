@@ -643,7 +643,7 @@
       const title = document.getElementById('chat-title');
       const frame = document.getElementById('chat-frame');
       panel.style.display = 'block';
-      title.textContent = vmName + ' — OpenHands チャット';
+      title.textContent = vmName + ' — ターミナル / チャット';
       frame.src = 'https://' + vmName + '.iseai.neuratools.ai/openhands/';
       panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -673,6 +673,7 @@
             <div class="metric-row"><span class="metric-label">CPU</span><span class="metric-value ${cpuClass}">${data.cpu_percent || '—'}%</span></div>
             <div class="metric-row"><span class="metric-label">メモリ</span><span class="metric-value">${data.memory || '—'}</span></div>
             <div class="metric-row"><span class="metric-label">ディスク</span><span class="metric-value">${data.disk || '—'}</span></div>
+            <div class="metric-row"><span class="metric-label">OpenClaw</span><span class="oh-version-tag" style="background:var(--red-light);color:var(--red-dark)">claude CLI</span></div>
             <div class="metric-row"><span class="metric-label">OpenHands</span><span class="oh-version-tag">${data.oh_version || '未起動'}</span></div>
           `;
         } catch(e) {
@@ -860,7 +861,7 @@
         <span class="info-value" id="info-openclaw">—</span>
       </div>
       <div class="info-row">
-        <span class="info-label">OpenHands</span>
+        <span class="info-label" style="color:var(--text-faint)">OpenHands<br><span style="font-size:10px">（任意）</span></span>
         <span class="info-value" id="info-openhands">—</span>
       </div>
       <div class="info-row">
@@ -931,7 +932,7 @@
           <option value="NOT_EXISTS">NOT_EXISTS</option>
         </select>
         <select id="oh-filter" onchange="filterTable()">
-          <option value="">OpenHands 全て</option>
+          <option value="">OpenClaw / OH 全て</option>
           <option value="ok">稼働中</option>
           <option value="ng">未起動</option>
         </select>
@@ -944,7 +945,7 @@
           <th class="sortable" data-col="0" onclick="sortTable(0)">VMスロット <span class="sort-icon">↕</span></th>
           <th class="sortable" data-col="1" onclick="sortTable(1)">VM状態 <span class="sort-icon">↕</span></th>
           <th>割り当て参加者</th>
-          <th class="sortable" data-col="3" onclick="sortTable(3)">OpenHands <span class="sort-icon">↕</span></th>
+          <th class="sortable" data-col="3" onclick="sortTable(3)">サービス稼働 <span class="sort-icon">↕</span></th>
           <th>アクセス</th>
           <th>APIキー / モデル</th>
           <th>操作</th>
@@ -1093,11 +1094,11 @@
     </form>
   </div>
 
-  <!-- OpenHands 設定 -->
+  <!-- OpenHands 設定（サブツール） -->
   <div class="panel">
     <div class="panel-header">
-      <span class="panel-title">OpenHands 設定</span>
-      <span class="panel-hint">バージョンとAPI接続先を管理</span>
+      <span class="panel-title">OpenHands 設定 <span style="font-size:11px;color:var(--text-faint);font-weight:400">（サブツール）</span></span>
+      <span class="panel-hint">バージョンとLiteLLM接続先を管理</span>
     </div>
     <form method="post" action="/settings/openhands" class="oh-config-bar">
       <label>バージョン</label>
@@ -1118,7 +1119,7 @@
   <!-- チャットパネル -->
   <div class="panel" id="chat-panel" style="display:none">
     <div class="panel-header">
-      <span class="panel-title" id="chat-title">OpenHands チャット</span>
+      <span class="panel-title" id="chat-title">ターミナル / チャット</span>
       <button onclick="document.getElementById('chat-panel').style.display='none'"
               style="font-size:12px;color:var(--text-muted);background:none;border:none;cursor:pointer">✕ 閉じる</button>
     </div>
@@ -1149,7 +1150,7 @@
   <div class="panel">
     <div class="panel-header">
       <span class="panel-title">ログビューワー</span>
-      <span class="panel-hint">OpenHands・コンソールのログをリアルタイム確認</span>
+      <span class="panel-hint">OpenClaw・OpenHands・コンソールのログをリアルタイム確認</span>
     </div>
     <div class="log-panel">
       <div class="log-controls">
@@ -1160,7 +1161,7 @@
           <option value="management">管理コンソール (systemd)</option>
         </select>
         <input type="number" class="log-lines" id="log-lines" value="100" min="10" max="500" style="width:80px"> 行
-        <button class="btn-fetch-log" onclick="fetchLogs()">OpenHandsログ取得</button>
+        <button class="btn-fetch-log" onclick="fetchLogs()">サービスログ取得</button>
         <button class="btn-monitor" onclick="fetchConsoleLogs()">コンソールログ</button>
       </div>
       <pre class="log-output" id="log-output">ログを取得するには上のボタンを押してください</pre>
