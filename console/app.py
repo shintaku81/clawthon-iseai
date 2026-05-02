@@ -1,4 +1,4 @@
-import json, subprocess, os, secrets, hashlib
+import json, subprocess, os, secrets, hashlib, asyncio
 from mailer import send_vm_ready, send_welcome
 from pathlib import Path
 from datetime import datetime
@@ -6,11 +6,38 @@ from fastapi import FastAPI, Request, Form, Cookie, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.exception_handlers import http_exception_handler
+from starlette.exceptions import HTTPException as StarletteHTTPException
 import httpx
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+_ERROR_MESSAGES = {
+    400: ("Bad Request", "リクエストの形式が正しくありません。"),
+    403: ("Forbidden", "このページにアクセスする権限がありません。"),
+    404: ("Not Found", "お探しのページは見つかりませんでした。URLを確認してください。"),
+    405: ("Method Not Allowed", "このメソッドは許可されていません。"),
+    422: ("Unprocessable Entity", "入力データの検証に失敗しました。"),
+    500: ("Internal Server Error", "サーバー内部でエラーが発生しました。しばらく待ってから再試行してください。"),
+    502: ("Bad Gateway", "サーバーが一時的に応答できません。しばらく待ってから再試行してください。"),
+    503: ("Service Unavailable", "サービスが一時的に利用できません。メンテナンス中の可能性があります。"),
+    504: ("Gateway Timeout", "サーバーからの応答がタイムアウトしました。"),
+}
+
+_ERROR_TEMPLATE = Path("static/error.html").read_text(encoding="utf-8") if Path("static/error.html").exists() else ""
+
+def _make_error_page(code: int) -> HTMLResponse:
+    title, desc = _ERROR_MESSAGES.get(code, ("Error", "予期しないエラーが発生しました。"))
+    html = _ERROR_TEMPLATE.replace("{{CODE}}", str(code)).replace("{{TITLE}}", title).replace("{{DESC}}", desc)
+    return HTMLResponse(content=html, status_code=code)
+
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code in _ERROR_MESSAGES and _ERROR_TEMPLATE:
+        return _make_error_page(exc.status_code)
+    return await http_exception_handler(request, exc)
 
 ALL_SLOTS = [f"{i:02d}" for i in range(1, 11)]  # ["01", "02", ..., "10"]
 
@@ -79,42 +106,48 @@ async def gcloud_run_async(args: list[str]) -> str:
     return await loop.run_in_executor(_executor, lambda: gcloud_run(args))
 
 
-def get_vm_status(pid: str) -> str:
+def get_all_vm_info() -> dict[str, dict]:
+    """clawthon-p* VMs を一括取得。{slot: {status, ip}} を返す。"""
     out = gcloud_run([
-        "compute", "instances", "describe", f"clawthon-p{pid}",
-        f"--project={PROJECT}", f"--zone={ZONE}",
-        "--format=value(status)"
+        "compute", "instances", "list",
+        f"--project={PROJECT}", f"--filter=name~^clawthon-p",
+        "--format=csv[no-heading](name,status,networkInterfaces[0].accessConfigs[0].natIP)"
     ])
-    if not out or "ERROR" in out:
-        return "NOT_EXISTS"
-    return out
+    result = {}
+    for line in (out or "").strip().splitlines():
+        parts = line.split(",")
+        if len(parts) >= 2:
+            name = parts[0].strip()
+            status = parts[1].strip()
+            ip = parts[2].strip() if len(parts) > 2 else ""
+            slot = name.replace("clawthon-p", "")
+            result[slot] = {"status": status, "ip": ip}
+    return result
+
+
+async def get_all_vm_info_async() -> dict[str, dict]:
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(_executor, get_all_vm_info)
+
+
+def get_vm_status(pid: str) -> str:
+    info = get_all_vm_info()
+    return info.get(pid, {}).get("status", "NOT_EXISTS")
 
 
 async def get_vm_status_async(pid: str) -> str:
-    out = await gcloud_run_async([
-        "compute", "instances", "describe", f"clawthon-p{pid}",
-        f"--project={PROJECT}", f"--zone={ZONE}",
-        "--format=value(status)"
-    ])
-    if not out or "ERROR" in out:
-        return "NOT_EXISTS"
-    return out
+    info = await get_all_vm_info_async()
+    return info.get(pid, {}).get("status", "NOT_EXISTS")
 
 
 async def get_vm_ip_async(pid: str) -> str:
-    return await gcloud_run_async([
-        "compute", "instances", "describe", f"clawthon-p{pid}",
-        f"--project={PROJECT}", f"--zone={ZONE}",
-        "--format=value(networkInterfaces[0].accessConfigs[0].natIP)"
-    ])
+    info = await get_all_vm_info_async()
+    return info.get(pid, {}).get("ip", "")
 
 
 def get_vm_ip(pid: str) -> str:
-    return gcloud_run([
-        "compute", "instances", "describe", f"clawthon-p{pid}",
-        f"--project={PROJECT}", f"--zone={ZONE}",
-        "--format=value(networkInterfaces[0].accessConfigs[0].natIP)"
-    ])
+    info = get_all_vm_info()
+    return info.get(pid, {}).get("ip", "")
 
 
 async def check_openhands_async(vm_ip: str) -> bool:
@@ -177,32 +210,28 @@ async def dashboard(request: Request, session: str = Cookie(default="")):
         if slot and slot in ALL_SLOTS:
             slot_to_participant[slot] = p
 
-    # Get statuses for all 10 slots in parallel
-    statuses = await asyncio.gather(*[get_vm_status_async(slot) for slot in ALL_SLOTS])
+    # 1回のgcloud instances listで全VM情報を取得（個別describeより大幅に高速）
+    all_vm_info = await get_all_vm_info_async()
 
-    async def maybe_ip(slot, st):
-        return await get_vm_ip_async(slot) if st == "RUNNING" else ""
-
-    ips = await asyncio.gather(*[maybe_ip(slot, st) for slot, st in zip(ALL_SLOTS, statuses)])
-
-    async def _false():
-        return False
-
-    oh_statuses = await asyncio.gather(*[
-        check_openhands_async(ip) if st == "RUNNING" else _false()
-        for ip, st in zip(ips, statuses)
-    ])
+    # OpenHandsチェックはRUNNING VMのみ並列実行
+    running_slots = [s for s in ALL_SLOTS if all_vm_info.get(s, {}).get("status") == "RUNNING"]
+    running_ips = [all_vm_info[s]["ip"] for s in running_slots]
+    oh_results = await asyncio.gather(*[check_openhands_async(ip) for ip in running_ips])
+    oh_map = dict(zip(running_slots, oh_results))
 
     # Build vm_slots list for template
     vm_slots = []
-    for slot, st, ip, oh in zip(ALL_SLOTS, statuses, ips, oh_statuses):
+    for slot in ALL_SLOTS:
+        info = all_vm_info.get(slot, {})
+        st = info.get("status", "NOT_EXISTS")
+        ip = info.get("ip", "")
         participant = slot_to_participant.get(slot)
         vm_slots.append({
             "slot": slot,
             "vm_status": st,
             "vm_ip": ip,
-            "oh_status": oh,
-            "participant": participant,  # None if unassigned
+            "oh_status": oh_map.get(slot, False),
+            "participant": participant,
             "url_openhands": f"https://p{slot}.{DOMAIN}/openhands/",
             "url_vscode": f"https://p{slot}.{DOMAIN}/code/",
         })
