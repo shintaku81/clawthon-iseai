@@ -918,12 +918,12 @@
 <!-- メインコンテンツ -->
 <main>
 
-  <!-- 参加者テーブル -->
+  <!-- VM管理テーブル -->
   <div class="panel">
     <div class="panel-header">
-      <span class="panel-title">参加者 &amp; VM ステータス</span>
+      <span class="panel-title">VM スロット管理</span>
       <div class="table-controls">
-        <input type="search" id="participant-search" placeholder="名前・メール・IDで検索…" oninput="filterTable()">
+        <input type="search" id="participant-search" placeholder="名前・メール・スロットで検索…" oninput="filterTable()">
         <select id="status-filter" onchange="filterTable()">
           <option value="">すべてのVM状態</option>
           <option value="RUNNING">RUNNING</option>
@@ -931,7 +931,7 @@
           <option value="NOT_EXISTS">NOT_EXISTS</option>
         </select>
         <select id="oh-filter" onchange="filterTable()">
-          <option value="">OpenClaw/OH 全て</option>
+          <option value="">OpenHands 全て</option>
           <option value="ok">稼働中</option>
           <option value="ng">未起動</option>
         </select>
@@ -941,9 +941,9 @@
     <table id="participants-table">
       <thead>
         <tr>
-          <th class="sortable" data-col="0" onclick="sortTable(0)"># <span class="sort-icon">↕</span></th>
-          <th class="sortable" data-col="1" onclick="sortTable(1)">参加者 <span class="sort-icon">↕</span></th>
-          <th class="sortable" data-col="2" onclick="sortTable(2)">VM <span class="sort-icon">↕</span></th>
+          <th class="sortable" data-col="0" onclick="sortTable(0)">VMスロット <span class="sort-icon">↕</span></th>
+          <th class="sortable" data-col="1" onclick="sortTable(1)">VM状態 <span class="sort-icon">↕</span></th>
+          <th>割り当て参加者</th>
           <th class="sortable" data-col="3" onclick="sortTable(3)">OpenHands <span class="sort-icon">↕</span></th>
           <th>アクセス</th>
           <th>APIキー / モデル</th>
@@ -951,19 +951,40 @@
         </tr>
       </thead>
       <tbody id="participants-tbody">
-        {% for p in participants %}
-        <tr data-id="{{ p.id }}" data-name="{{ p.name|lower }}" data-email="{{ p.email|lower }}" data-status="{{ p.vm_status }}" data-oh="{{ 'ok' if p.oh_status else 'ng' }}">
-          <td style="color:var(--text-faint);font-family:var(--font-heading);font-weight:600;font-size:13px">{{ p.id }}</td>
+        {% for v in vm_slots %}
+        <tr data-id="{{ v.slot }}"
+            data-name="{{ v.participant.name|lower if v.participant else '' }}"
+            data-email="{{ v.participant.email|lower if v.participant else '' }}"
+            data-status="{{ v.vm_status }}"
+            data-oh="{{ 'ok' if v.oh_status else 'ng' }}">
+
+          <td style="font-family:var(--font-heading);font-weight:700;color:var(--red);font-size:14px">p{{ v.slot }}</td>
+
+          <td><span class="badge badge-{{ v.vm_status }}">{{ v.vm_status }}</span></td>
+
           <td>
-            <div class="participant-name">{{ p.name }}</div>
-            <div class="participant-email">{{ p.email }}</div>
+            {% if v.participant %}
+              <div class="participant-name">{{ v.participant.name }}</div>
+              <div class="participant-email">{{ v.participant.email }}</div>
+              <form method="post" action="/api/vm/{{ v.slot }}/unassign" style="margin-top:4px">
+                <button type="submit" class="btn" style="font-size:11px;padding:2px 8px;color:var(--text-muted)">解除</button>
+              </form>
+            {% else %}
+              <form method="post" action="/api/vm/{{ v.slot }}/assign" style="display:flex;gap:4px;align-items:center">
+                <select name="participant_id" style="font-size:12px;padding:4px;border:1px solid var(--border);border-radius:6px;max-width:160px">
+                  <option value="">参加者を選択…</option>
+                  {% for p in unassigned_participants %}
+                  <option value="{{ p.get('participant_id', p.get('id','')) }}">{{ p.name }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-create" style="font-size:11px;padding:4px 8px">割り当て</button>
+              </form>
+            {% endif %}
           </td>
+
           <td>
-            <span class="badge badge-{{ p.vm_status }}">{{ p.vm_status }}</span>
-          </td>
-          <td>
-            {% if p.vm_status == 'RUNNING' %}
-              {% if p.oh_status %}
+            {% if v.vm_status == 'RUNNING' %}
+              {% if v.oh_status %}
                 <span class="oh-badge oh-ok">稼働中</span>
               {% else %}
                 <span class="oh-badge oh-ng">未起動</span>
@@ -972,67 +993,82 @@
               <span style="color:var(--border);font-size:12px">—</span>
             {% endif %}
           </td>
+
           <td>
-            {% if p.vm_status == 'RUNNING' %}
+            {% if v.vm_status == 'RUNNING' %}
             <div class="link-group">
-              <a class="link-btn" href="https://p{{ '%02d'|format(p.id|int) }}.iseai.neuratools.ai/" target="_blank" style="color:#059669;border-color:var(--green-border);background:var(--green-bg);">ポータル</a>
-              <a class="link-btn link-oh" href="{{ p.url_openhands }}" target="_blank">OpenHands</a>
-              <a class="link-btn link-vs" href="{{ p.url_vscode }}" target="_blank">VSCode</a>
-              <button class="btn btn-chat" onclick="openChat('p{{ p.id }}')">チャット</button>
+              <a class="link-btn" href="https://p{{ v.slot }}.iseai.neuratools.ai/" target="_blank" style="color:#059669;border-color:var(--green-border);background:var(--green-bg);">ポータル</a>
+              <a class="link-btn link-oh" href="{{ v.url_openhands }}" target="_blank">OH</a>
+              <a class="link-btn link-vs" href="{{ v.url_vscode }}" target="_blank">VSCode</a>
+              {% if v.participant %}
+              <button class="btn btn-chat" onclick="openChat('p{{ v.slot }}')">チャット</button>
+              {% endif %}
             </div>
             {% else %}
             <span style="color:var(--border);font-size:12px">—</span>
             {% endif %}
           </td>
+
           <td>
+            {% if v.participant %}
             <details>
               <summary>
                 <span class="key-preview">
-                  {% if p.litellm_key %}
-                    <code>{{ p.litellm_key[:16] }}…</code>
-                  {% elif p.api_key %}
-                    <code>{{ p.api_key[:12] }}…</code>
+                  {% if v.participant.litellm_key %}
+                    <code>{{ v.participant.litellm_key[:16] }}…</code>
+                  {% elif v.participant.api_key %}
+                    <code>{{ v.participant.api_key[:8] }}…</code>
                   {% else %}
                     <span style="color:var(--orange);font-weight:600;font-size:12px">⚠ 未設定</span>
                   {% endif %}
                   <span class="toggle-icon">▼</span>
                 </span>
               </summary>
-              <form method="post" action="/participants/{{ p.id }}/update" class="settings-form">
-                <input type="text" name="api_key" value="{{ p.api_key }}" placeholder="sk-ant-api03-…">
+              <form method="post" action="/participants/{{ v.slot }}/update" class="settings-form">
+                <input type="text" name="api_key" value="{{ v.participant.api_key }}" placeholder="sk-ant-…">
                 <select name="model">
-                  <option value="claude-sonnet-4-5" {% if p.model == 'claude-sonnet-4-5' %}selected{% endif %}>Claude Sonnet 4.5</option>
-                  <option value="claude-sonnet" {% if p.model == 'claude-sonnet' %}selected{% endif %}>Claude Sonnet</option>
-                  <option value="claude-haiku" {% if p.model == 'claude-haiku' %}selected{% endif %}>Claude Haiku</option>
-                  <option value="gpt-4o" {% if p.model == 'gpt-4o' %}selected{% endif %}>GPT-4o</option>
-                  <option value="gemini-flash" {% if p.model == 'gemini-flash' %}selected{% endif %}>Gemini Flash</option>
+                  <option value="claude-sonnet-4-5" {% if v.participant.model == 'claude-sonnet-4-5' %}selected{% endif %}>Claude Sonnet 4.5</option>
+                  <option value="claude-sonnet" {% if v.participant.model == 'claude-sonnet' %}selected{% endif %}>Claude Sonnet</option>
+                  <option value="claude-haiku" {% if v.participant.model == 'claude-haiku' %}selected{% endif %}>Claude Haiku</option>
+                  <option value="gpt-4o" {% if v.participant.model == 'gpt-4o' %}selected{% endif %}>GPT-4o</option>
+                  <option value="gemini-flash" {% if v.participant.model == 'gemini-flash' %}selected{% endif %}>Gemini Flash</option>
                 </select>
                 <button type="submit" class="btn-save">保存</button>
               </form>
             </details>
+            {% else %}
+              <span style="color:var(--border);font-size:12px">—</span>
+            {% endif %}
           </td>
+
           <td>
             <div style="display:flex;gap:5px;flex-wrap:wrap">
-              {% if p.vm_status == 'NOT_EXISTS' %}
-                <form method="post" action="/vm/{{ p.id }}/create">
-                  <button class="btn btn-create">＋ 作成</button>
+              {% if v.vm_status == 'NOT_EXISTS' %}
+                {% if v.participant %}
+                <form method="post" action="/vm/{{ v.slot }}/create">
+                  <button class="btn btn-create">＋ VM作成</button>
                 </form>
-              {% elif p.vm_status == 'TERMINATED' %}
-                <form method="post" action="/vm/{{ p.id }}/start">
+                {% else %}
+                <span style="color:var(--border);font-size:12px">参加者未割り当て</span>
+                {% endif %}
+              {% elif v.vm_status == 'TERMINATED' %}
+                <form method="post" action="/vm/{{ v.slot }}/start">
                   <button class="btn btn-start">▶ 起動</button>
                 </form>
-              {% elif p.vm_status == 'RUNNING' %}
-                <form method="post" action="/vm/{{ p.id }}/stop">
+              {% elif v.vm_status == 'RUNNING' %}
+                <form method="post" action="/vm/{{ v.slot }}/stop">
                   <button class="btn btn-stop">■ 停止</button>
                 </form>
               {% endif %}
-                <button class="btn btn-info" onclick="showLoginInfo('{{ p.id }}', '{{ p.name }}', '{{ p.email }}')">情報</button>
-              {% if p.vm_status == 'RUNNING' and p.email %}
-                <button class="btn btn-mail" onclick="sendWelcomeMail('{{ p.id }}', '{{ p.email }}')">📧 メール</button>
+              {% if v.participant and v.participant.email %}
+                <button class="btn btn-info" onclick="showLoginInfo('{{ v.slot }}', '{{ v.participant.name }}', '{{ v.participant.email }}')">情報</button>
+                {% if v.vm_status == 'RUNNING' %}
+                <button class="btn btn-mail" onclick="sendWelcomeMail('{{ v.slot }}', '{{ v.participant.email }}')">📧</button>
+                {% endif %}
               {% endif %}
-              {% if p.vm_status != 'NOT_EXISTS' %}
-                <form method="post" action="/vm/{{ p.id }}/delete"
-                      onsubmit="return confirm('{{ p.name }} のVMを完全に削除しますか？')">
+              {% if v.vm_status != 'NOT_EXISTS' %}
+                <form method="post" action="/vm/{{ v.slot }}/delete"
+                      onsubmit="return confirm('p{{ v.slot }} のVMを削除しますか？')">
                   <button class="btn btn-delete">削除</button>
                 </form>
               {% endif %}
@@ -1040,19 +1076,10 @@
           </td>
         </tr>
         {% endfor %}
-
-        {% if not participants %}
-        <tr><td colspan="7">
-          <div class="empty-state">
-            <div style="font-size:32px">👥</div>
-            <p>参加者がまだ登録されていません</p>
-          </div>
-        </td></tr>
-        {% endif %}
       </tbody>
     </table>
 
-    <!-- 参加者追加 -->
+    <!-- 参加者追加（VMへの割り当ては後から可能） -->
     <form method="post" action="/participants/add" class="add-form">
       <div class="form-field">
         <label>名前</label>
@@ -1062,7 +1089,7 @@
         <label>メールアドレス</label>
         <input type="email" name="email" placeholder="taro@example.com" required>
       </div>
-      <button type="submit" class="btn-add">＋ 参加者を追加</button>
+      <button type="submit" class="btn-add">＋ 参加者を追加（VMへの割り当ては後から可能）</button>
     </form>
   </div>
 
@@ -1105,19 +1132,16 @@
       <button class="btn-monitor" onclick="loadMetrics()">↻ 更新</button>
     </div>
     <div class="monitor-grid" id="monitor-grid"
-         data-pids="{{ participants | map(attribute='id') | join(',') }}">
-      {% for p in participants %}
-      <div class="metric-card" id="metric-card-{{ p.id }}">
+         data-pids="{{ vm_slots | map(attribute='slot') | join(',') }}">
+      {% for v in vm_slots %}
+      <div class="metric-card" id="metric-card-{{ v.slot }}">
         <div class="metric-header">
-          <span class="metric-name">p{{ p.id }} — {{ p.name }}</span>
-          <span class="badge badge-{{ p.vm_status }}" style="font-size:10px">{{ p.vm_status }}</span>
+          <span class="metric-name">p{{ v.slot }}{% if v.participant %} — {{ v.participant.name }}{% endif %}</span>
+          <span class="badge badge-{{ v.vm_status }}" style="font-size:10px">{{ v.vm_status }}</span>
         </div>
         <div style="color:var(--text-faint);font-size:12px;padding:8px 0">「更新」を押して取得</div>
       </div>
       {% endfor %}
-      {% if not participants %}
-      <div style="color:var(--text-faint);font-size:13px;padding:20px">参加者が登録されていません</div>
-      {% endif %}
     </div>
   </div>
 
@@ -1130,8 +1154,8 @@
     <div class="log-panel">
       <div class="log-controls">
         <select class="log-select" id="log-pid-select">
-          {% for p in participants %}
-          <option value="{{ p.id }}">p{{ p.id }} — {{ p.name }}</option>
+          {% for v in vm_slots %}
+          <option value="{{ v.slot }}">p{{ v.slot }}{% if v.participant %} — {{ v.participant.name }}{% endif %}</option>
           {% endfor %}
           <option value="management">管理コンソール (systemd)</option>
         </select>

@@ -12,6 +12,8 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+ALL_SLOTS = [f"{i:02d}" for i in range(1, 11)]  # ["01", "02", ..., "10"]
+
 PROJECT = "clawthon-iseai"
 ZONE = "asia-northeast1-b"
 GCLOUD = os.getenv("GCLOUD_PATH", "/usr/bin/gcloud")
@@ -167,31 +169,51 @@ async def dashboard(request: Request, session: str = Cookie(default="")):
     data = load_data()
     settings = load_settings()
     participants = data["participants"]
-    # 全VMのステータスを並列取得
-    statuses = await asyncio.gather(*[get_vm_status_async(p["id"]) for p in participants])
 
-    async def maybe_ip(pid, st):
-        return await get_vm_ip_async(pid) if st == "RUNNING" else ""
+    # Build a map: vm_slot -> participant (backwards compat: use vm_slot or id)
+    slot_to_participant = {}
+    for p in participants:
+        slot = p.get("vm_slot") or p.get("id")
+        if slot and slot in ALL_SLOTS:
+            slot_to_participant[slot] = p
 
-    ips = await asyncio.gather(*[maybe_ip(p["id"], st) for p, st in zip(participants, statuses)])
+    # Get statuses for all 10 slots in parallel
+    statuses = await asyncio.gather(*[get_vm_status_async(slot) for slot in ALL_SLOTS])
+
+    async def maybe_ip(slot, st):
+        return await get_vm_ip_async(slot) if st == "RUNNING" else ""
+
+    ips = await asyncio.gather(*[maybe_ip(slot, st) for slot, st in zip(ALL_SLOTS, statuses)])
 
     async def _false():
         return False
 
-    # OpenHandsステータスを並列チェック
     oh_statuses = await asyncio.gather(*[
         check_openhands_async(ip) if st == "RUNNING" else _false()
         for ip, st in zip(ips, statuses)
     ])
 
-    for p, st, ip, oh in zip(participants, statuses, ips, oh_statuses):
-        p["vm_status"] = st
-        p["vm_ip"] = ip
-        p["oh_status"] = oh
-        p["url_openhands"] = f"https://p{p['id']}.{DOMAIN}/openhands/"
-        p["url_vscode"] = f"https://p{p['id']}.{DOMAIN}/code/"
+    # Build vm_slots list for template
+    vm_slots = []
+    for slot, st, ip, oh in zip(ALL_SLOTS, statuses, ips, oh_statuses):
+        participant = slot_to_participant.get(slot)
+        vm_slots.append({
+            "slot": slot,
+            "vm_status": st,
+            "vm_ip": ip,
+            "oh_status": oh,
+            "participant": participant,  # None if unassigned
+            "url_openhands": f"https://p{slot}.{DOMAIN}/openhands/",
+            "url_vscode": f"https://p{slot}.{DOMAIN}/code/",
+        })
 
-    running_count = sum(1 for p in participants if p["vm_status"] == "RUNNING")
+    # Unassigned participants (no vm_slot or vm_slot not in ALL_SLOTS)
+    unassigned_participants = [
+        p for p in participants
+        if (p.get("vm_slot") or p.get("id", "")) not in ALL_SLOTS
+    ]
+
+    running_count = sum(1 for v in vm_slots if v["vm_status"] == "RUNNING")
     # コスト概算（円）: 管理VM e2-small $0.017/h + 参加者VM e2-standard-2 SPOT $0.025/h
     MGMT_HOURLY_JPY = 0.017 * 150  # $0.017 × 150円/ドル
     PART_HOURLY_JPY = 0.025 * 150
@@ -201,7 +223,9 @@ async def dashboard(request: Request, session: str = Cookie(default="")):
 
     return templates.TemplateResponse("index.html", {
         "request": request,
-        "participants": participants,
+        "vm_slots": vm_slots,
+        "participants": participants,  # keep for backwards compat
+        "unassigned_participants": unassigned_participants,
         "total": len(participants),
         "running": running_count,
         "oh_version": settings.get("oh_version", DEFAULT_OH_VERSION),
@@ -224,9 +248,13 @@ async def add_participant(
     if not is_admin(session):
         raise HTTPException(403)
     data = load_data()
-    new_id = str(len(data["participants"]) + 1).zfill(2)
+    # Generate a participant_id (sequential)
+    next_num = len(data["participants"]) + 1
+    participant_id = f"u{next_num:02d}"
     data["participants"].append({
-        "id": new_id,
+        "participant_id": participant_id,
+        "id": "",  # no VM slot yet
+        "vm_slot": None,
         "name": name,
         "email": email,
         "litellm_key": "",
@@ -252,6 +280,48 @@ async def update_participant(
         if p["id"] == pid:
             p["api_key"] = api_key
             p["model"] = model
+            break
+    save_data(data)
+    return RedirectResponse("/", status_code=303)
+
+
+@app.post("/api/vm/{slot}/assign")
+async def assign_participant(
+    slot: str,
+    participant_id: str = Form(...),
+    session: str = Cookie(default="")
+):
+    if not is_admin(session):
+        raise HTTPException(403)
+    data = load_data()
+    # Remove this slot from any existing assignment
+    for p in data["participants"]:
+        if p.get("vm_slot") == slot or p.get("id") == slot:
+            p["vm_slot"] = None
+            p["id"] = ""
+    # Assign the new participant
+    for p in data["participants"]:
+        pid = p.get("participant_id", p.get("id", ""))
+        if pid == participant_id:
+            p["vm_slot"] = slot
+            p["id"] = slot
+            break
+    save_data(data)
+    return RedirectResponse("/", status_code=303)
+
+
+@app.post("/api/vm/{slot}/unassign")
+async def unassign_participant(
+    slot: str,
+    session: str = Cookie(default="")
+):
+    if not is_admin(session):
+        raise HTTPException(403)
+    data = load_data()
+    for p in data["participants"]:
+        if p.get("vm_slot") == slot or p.get("id") == slot:
+            p["vm_slot"] = None
+            p["id"] = ""
             break
     save_data(data)
     return RedirectResponse("/", status_code=303)
