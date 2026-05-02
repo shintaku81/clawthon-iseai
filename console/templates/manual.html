@@ -402,8 +402,11 @@
       <a href="#vm" class="sidenav-item">
         <span class="icon">🖥️</span>参加者VM管理
       </a>
+      <a href="#openclaw" class="sidenav-item">
+        <span class="icon">🦀</span>OpenClaw / Claude Code
+      </a>
       <a href="#openhands" class="sidenav-item">
-        <span class="icon">🤖</span>OpenHands
+        <span class="icon">🤖</span>OpenHands（サブ機能）
       </a>
       <a href="#vscode" class="sidenav-item">
         <span class="icon">💻</span>VSCode
@@ -459,12 +462,17 @@
         </tr>
         <tr>
           <td><strong>参加者VM</strong></td>
-          <td>各参加者の開発環境（OpenHands + VSCode）</td>
+          <td>各参加者の開発環境（OpenClaw + VSCode + OpenHands）</td>
           <td>vega, altair, ... (参加者VM)</td>
         </tr>
         <tr>
+          <td><strong>OpenClaw (Claude Code CLI)</strong></td>
+          <td>メイン — ターミナルでAIとコーディング</td>
+          <td>各参加者VM (VSCode ターミナル)</td>
+        </tr>
+        <tr>
           <td><strong>OpenHands</strong></td>
-          <td>AIエージェント（自律コーディング）</td>
+          <td>サブ — ブラウザUIのAIエージェント（任意）</td>
           <td>各参加者VM :3000</td>
         </tr>
         <tr>
@@ -603,13 +611,46 @@
       </div>
     </div>
 
+    <!-- OpenClaw -->
+    <div class="doc-section" id="openclaw">
+      <div class="section-header">
+        <div class="section-icon-wrap">🦀</div>
+        <h2 class="section-title">OpenClaw / Claude Code CLI</h2>
+      </div>
+      <p class="body">OpenClaw は Claude Code CLI のハッカソン名称です。参加者は VSCode のターミナルから <code>claude</code> コマンドを使って、AI と対話しながらコーディングできます。</p>
+
+      <div class="step-list">
+        <h4 style="font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text);">参加者の使い方</h4>
+        <ol style="padding-left: 20px; font-size: 14px; line-height: 1.8; color: #374151;">
+          <li>VSCode (<code>/code/</code>) を開く</li>
+          <li>ターミナルを起動 (<code>Ctrl+`</code>)</li>
+          <li><code>claude</code> と入力して Enter</li>
+          <li>APIキーを入力（初回のみ）</li>
+          <li>AIと会話しながらコーディング開始</li>
+        </ol>
+      </div>
+
+      <h4 style="font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; margin: 20px 0 8px; color: var(--text);">バージョン確認</h4>
+      <div class="code-block">
+        <span class="cmd">claude --version</span>
+      </div>
+
+      <h4 style="font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; margin: 20px 0 8px; color: var(--text);">インストール場所</h4>
+      <p class="body">cloud-init により VM 作成時に自動インストール済み (<code>/usr/local/bin/claude</code>)</p>
+
+      <div class="info">
+        <span class="info-icon">ℹ️</span>
+        APIキーは運営から参加者に配布します。参加者が初めて <code>claude</code> を実行したとき、APIキーの入力を求められます。
+      </div>
+    </div>
+
     <!-- OpenHands -->
     <div class="doc-section" id="openhands">
       <div class="section-header">
         <div class="section-icon-wrap">🤖</div>
-        <h2 class="section-title">OpenHands の操作</h2>
+        <h2 class="section-title">OpenHands（サブ機能）</h2>
       </div>
-      <p class="body">OpenHandsはAIエージェントが自律的にコードを書くツールです。参加者は自然言語でタスクを指示するだけでコードが自動生成されます。</p>
+      <p class="body">OpenHandsは任意のツールです。ブラウザUIでAIエージェントを操作したい場合に使います。メインツールはOpenClaw (Claude Code CLI)です。</p>
       <ul class="plain">
         <li><strong>参加者URL</strong>: <code>https://pXX.iseai.neuratools.ai/openhands/</code></li>
         <li><strong>管理コンソールからチャット</strong>: ダッシュボードの「チャット」ボタンで管理画面内に埋め込み表示</li>
@@ -785,6 +826,11 @@ $12.82 ≈ <span class="cmd">¥1,923</span></div>
           <th>症状</th><th>原因</th><th>対処</th>
         </tr>
         <tr>
+          <td>OpenClaw が動かない</td>
+          <td><code>claude</code> コマンドが見つからない</td>
+          <td><code>npm install -g @anthropic-ai/claude-code</code></td>
+        </tr>
+        <tr>
           <td>VMが「TERMINATED」</td>
           <td>SPOTインスタンスがGCPに回収された</td>
           <td>「起動」ボタンで再起動</td>
@@ -844,6 +890,14 @@ $12.82 ≈ <span class="cmd">¥1,923</span></div>
           <a href="https://p01.iseai.neuratools.ai" target="_blank">https://p01.iseai.neuratools.ai</a>
         </div>
         <div class="url-pw">—</div>
+      </div>
+      <div class="url-card">
+        <div class="url-icon">🦀</div>
+        <div>
+          <div class="url-name">参加者01 — VSCode (OpenClaw用ターミナル)</div>
+          <a href="https://p01.iseai.neuratools.ai/code/" target="_blank">https://p01.iseai.neuratools.ai/code/</a>
+        </div>
+        <div class="url-pw">clawthon2026</div>
       </div>
       <div class="url-card">
         <div class="url-icon">🤖</div>

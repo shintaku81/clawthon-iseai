@@ -12,6 +12,15 @@ packages:
   - python3-certbot-nginx
 
 runcmd:
+  # Node.js 20.x (Claude Code requires Node 18+)
+  - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  - apt-get install -y nodejs
+
+  # Claude Code (OpenClaw) インストール
+  - npm install -g @anthropic-ai/claude-code
+  - echo 'export PATH="$PATH:/usr/local/lib/node_modules/.bin"' >> /etc/profile
+  - claude --version > /tmp/openclaw-version.txt 2>&1 || echo "claude install pending" > /tmp/openclaw-version.txt
+
   - systemctl enable docker && systemctl start docker
   - mkdir -p /opt/clawthon/workspace ~/.openhands
 
@@ -71,4 +80,4 @@ runcmd:
   - rm -f /etc/nginx/sites-enabled/default
   - mkdir -p /var/www/clawthon
   - nginx -t && systemctl reload nginx
-  - echo "参加者VM初期化完了" > /tmp/init-done.txt
+  - echo "参加者VM初期化完了 (OpenClaw + OpenHands + VSCode)" > /tmp/init-done.txt

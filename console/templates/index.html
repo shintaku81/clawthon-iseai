@@ -95,6 +95,59 @@
     .header-nav a:hover { background: var(--bg); color: var(--text); }
     .header-nav .logout { border: 1px solid var(--border); border-radius: 20px; }
 
+    /* 参加者ページドロップダウン */
+    .nav-dropdown {
+      position: relative;
+    }
+    .nav-dropdown-btn {
+      font-size: 13px;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: var(--font-heading);
+      transition: background 0.15s, color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .nav-dropdown-btn:hover { background: var(--bg); color: var(--text); }
+    .nav-dropdown-btn .caret {
+      font-size: 9px;
+      color: var(--text-faint);
+      transition: transform 0.15s;
+    }
+    .nav-dropdown:hover .nav-dropdown-btn .caret { transform: rotate(180deg); }
+    .nav-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      min-width: 160px;
+      z-index: 200;
+      padding: 4px;
+      overflow: hidden;
+    }
+    .nav-dropdown:hover .nav-dropdown-menu { display: block; }
+    .nav-dropdown-menu a {
+      display: block;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-family: var(--font-heading);
+      border-radius: 5px;
+      transition: background 0.1s, color 0.1s;
+      white-space: nowrap;
+    }
+    .nav-dropdown-menu a:hover { background: var(--red-light); color: var(--red-dark); }
+
     /* ─── メインレイアウト ─── */
     main { max-width: 1440px; margin: 0 auto; padding: 28px; display: flex; flex-direction: column; gap: 20px; }
 
@@ -433,6 +486,93 @@
       color: var(--text-faint);
     }
     .empty-state p { font-size: 14px; margin-top: 8px; }
+
+    /* ログイン情報モーダル */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border-radius: 16px;
+      width: 520px;
+      max-width: 95vw;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+      overflow: hidden;
+    }
+    .modal-header {
+      background: var(--red);
+      color: white;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-header h3 {
+      font-family: var(--font-heading);
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .modal-close {
+      background: none; border: none; color: white;
+      font-size: 20px; cursor: pointer; line-height: 1; padding: 0 4px;
+    }
+    .modal-body { padding: 24px; }
+    .info-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 13px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label {
+      min-width: 110px;
+      color: var(--text-muted);
+      font-family: var(--font-heading);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding-top: 2px;
+    }
+    .info-value { flex: 1; word-break: break-all; }
+    .info-value a { color: var(--red); text-decoration: none; }
+    .info-value a:hover { text-decoration: underline; }
+    .info-value code {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 12px;
+    }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .btn-copy-all {
+      padding: 8px 16px;
+      background: var(--red);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font-heading);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-copy-all:hover { background: var(--red-dark); }
+    .btn-info { color: #0369a1; border-color: #bae6fd; }
+    .btn-info:hover { background: #f0f9ff; }
   </style>
   <style>
     /* 監視パネル */
@@ -660,9 +800,81 @@
         btn.disabled = false;
       }
     }
+
+    function showLoginInfo(pid, name, email) {
+      const padded = String(pid).padStart(2, '0');
+      const base = `https://p${padded}.iseai.neuratools.ai`;
+      document.getElementById('modal-name').textContent = `${name} (p${padded})`;
+      document.getElementById('info-portal').innerHTML = `<a href="${base}/" target="_blank">${base}/</a>`;
+      document.getElementById('info-vscode').innerHTML = `<a href="${base}/code/" target="_blank">${base}/code/</a><br><code>パスワード: clawthon2026</code>`;
+      document.getElementById('info-openclaw').innerHTML = `VSCodeを開く → ターミナル(Ctrl+\`) → <code>claude</code>`;
+      document.getElementById('info-openhands').innerHTML = `<a href="${base}/openhands/" target="_blank">${base}/openhands/</a>`;
+      document.getElementById('info-email').textContent = email || '—';
+      document.getElementById('modal-pid').value = pid;
+      document.getElementById('modal-email').value = email;
+      document.getElementById('login-modal').classList.add('open');
+    }
+
+    function closeLoginModal() {
+      document.getElementById('login-modal').classList.remove('open');
+    }
+
+    function copyLoginInfo() {
+      const padded = String(document.getElementById('modal-pid').value).padStart(2, '0');
+      const base = `https://p${padded}.iseai.neuratools.ai`;
+      const text = `【Clawthon ISEAI アクセス情報】\n参加者ページ: ${base}/\nVSCode: ${base}/code/ (パスワード: clawthon2026)\nOpenClaw: VSCode → ターミナル → claude\nOpenHands: ${base}/openhands/`;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = '✓ コピー済';
+        setTimeout(() => btn.textContent = 'テキストをコピー', 2000);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('login-modal')?.addEventListener('click', e => {
+        if (e.target.id === 'login-modal') closeLoginModal();
+      });
+    });
   </script>
 </head>
 <body>
+
+<!-- ログイン情報モーダル -->
+<div class="modal-overlay" id="login-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-name">参加者情報</h3>
+      <button class="modal-close" onclick="closeLoginModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-row">
+        <span class="info-label">参加者ページ</span>
+        <span class="info-value" id="info-portal">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">VSCode</span>
+        <span class="info-value" id="info-vscode">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">OpenClaw</span>
+        <span class="info-value" id="info-openclaw">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">OpenHands</span>
+        <span class="info-value" id="info-openhands">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">メール</span>
+        <span class="info-value" id="info-email">—</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <input type="hidden" id="modal-pid">
+      <input type="hidden" id="modal-email">
+      <button class="btn-copy-all" id="copy-btn" onclick="copyLoginInfo()">テキストをコピー</button>
+    </div>
+  </div>
+</div>
 
 <!-- ヘッダー -->
 <header>
@@ -682,7 +894,22 @@
     <span style="opacity:.7;font-size:11px">（¥{{ cost_event }}/2日）</span>
   </div>
 
-  <div class="header-nav" style="display:flex;gap:4px">
+  <div class="header-nav" style="display:flex;gap:4px;align-items:center">
+    <div class="nav-dropdown">
+      <button class="nav-dropdown-btn">参加者ページ <span class="caret">▼</span></button>
+      <div class="nav-dropdown-menu">
+        <a href="https://p01.iseai.neuratools.ai/" target="_blank">p01</a>
+        <a href="https://p02.iseai.neuratools.ai/" target="_blank">p02</a>
+        <a href="https://p03.iseai.neuratools.ai/" target="_blank">p03</a>
+        <a href="https://p04.iseai.neuratools.ai/" target="_blank">p04</a>
+        <a href="https://p05.iseai.neuratools.ai/" target="_blank">p05</a>
+        <a href="https://p06.iseai.neuratools.ai/" target="_blank">p06</a>
+        <a href="https://p07.iseai.neuratools.ai/" target="_blank">p07</a>
+        <a href="https://p08.iseai.neuratools.ai/" target="_blank">p08</a>
+        <a href="https://p09.iseai.neuratools.ai/" target="_blank">p09</a>
+        <a href="https://p10.iseai.neuratools.ai/" target="_blank">p10</a>
+      </div>
+    </div>
     <a href="/manual">マニュアル</a>
     <a href="/logout" class="logout">ログアウト</a>
   </div>
@@ -704,7 +931,7 @@
           <option value="NOT_EXISTS">NOT_EXISTS</option>
         </select>
         <select id="oh-filter" onchange="filterTable()">
-          <option value="">OpenHands 全て</option>
+          <option value="">OpenClaw/OH 全て</option>
           <option value="ok">稼働中</option>
           <option value="ng">未起動</option>
         </select>
@@ -748,6 +975,7 @@
           <td>
             {% if p.vm_status == 'RUNNING' %}
             <div class="link-group">
+              <a class="link-btn" href="https://p{{ '%02d'|format(p.id|int) }}.iseai.neuratools.ai/" target="_blank" style="color:#059669;border-color:var(--green-border);background:var(--green-bg);">ポータル</a>
               <a class="link-btn link-oh" href="{{ p.url_openhands }}" target="_blank">OpenHands</a>
               <a class="link-btn link-vs" href="{{ p.url_vscode }}" target="_blank">VSCode</a>
               <button class="btn btn-chat" onclick="openChat('p{{ p.id }}')">チャット</button>
@@ -798,7 +1026,8 @@
                   <button class="btn btn-stop">■ 停止</button>
                 </form>
               {% endif %}
-                {% if p.vm_status == 'RUNNING' and p.email %}
+                <button class="btn btn-info" onclick="showLoginInfo('{{ p.id }}', '{{ p.name }}', '{{ p.email }}')">情報</button>
+              {% if p.vm_status == 'RUNNING' and p.email %}
                 <button class="btn btn-mail" onclick="sendWelcomeMail('{{ p.id }}', '{{ p.email }}')">📧 メール</button>
               {% endif %}
               {% if p.vm_status != 'NOT_EXISTS' %}
